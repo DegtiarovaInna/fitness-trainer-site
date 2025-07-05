@@ -1,0 +1,70 @@
+@startuml
+skinparam linetype ortho
+hide methods
+hide stereotypes
+
+entity "User" as User {
+  * id : Long
+  --
+  name : String
+  email : String
+  password : String
+  phoneNumber : String
+  role : Role
+  createdAt : LocalDateTime
+  updatedAt : LocalDateTime
+}
+
+entity "Studio" as Studio {
+  * id : Long
+  --
+  name : String
+  address : String
+  admin_id : Long  -- FK → User
+}
+
+entity "TimeSlot" as TimeSlot {
+  * id : Long
+  --
+  date : LocalDate
+  startTime : LocalTime
+  endTime : LocalTime
+  available : boolean
+  trial : boolean
+  studio_id : Long  -- FK → Studio
+}
+
+entity "Booking" as Booking {
+  * id : Long
+  --
+  createdAt : LocalDateTime
+  status : BookingStatus
+  user_id : Long       -- FK → User
+  time_slot_id : Long  -- FK → TimeSlot
+}
+
+entity "RefreshToken" as RefreshToken {
+  * id : Long
+  --
+  token : String
+  username : String  -- stored as text, no FK
+  expiresAt : LocalDateTime
+}
+
+' ---------- relations ----------
+' One-to-one: each Studio **optionally** has exactly one admin User,
+'            and один User может администрировать максимум одну Studio
+Studio ||--|| User : admin
+
+' One-to-many: 1 Studio → 0..* TimeSlot
+Studio ||--o{ TimeSlot
+
+' One-to-many: 1 TimeSlot → 0..* Booking
+TimeSlot ||--o{ Booking
+
+' One-to-many: 1 User → 0..* Booking
+User ||--o{ Booking
+
+' (не FK) dotted line to show logical link
+RefreshToken .. User : "username"
+@enduml
