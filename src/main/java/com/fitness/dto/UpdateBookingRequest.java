@@ -8,7 +8,7 @@ import lombok.Data;
 public class UpdateBookingRequest {
     private Long timeSlotId;
     @Schema(
-            description = "Новый статус брони (PENDING, CONFIRMED, CANCELLED)",
+            description = "New booking status (PENDING, CONFIRMED, CANCELLED)",
             example = "CONFIRMED"
     )
     private BookingStatus status;

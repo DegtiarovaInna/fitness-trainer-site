@@ -20,11 +20,11 @@ public class TimeSlot {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private LocalDate date;              // Дата слота
-    private LocalTime startTime;         // Начало
-    private LocalTime endTime;           // Конец
+    private LocalDate date;
+    private LocalTime startTime;
+    private LocalTime endTime;
 
-    private boolean available;           // Свободен ли слот
+    private boolean available;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "studio_id", nullable = false)

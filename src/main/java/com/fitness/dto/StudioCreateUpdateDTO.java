@@ -9,9 +9,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class StudioCreateUpdateDTO {
-    @NotBlank(message = "Название студии обязательно")
+    @NotBlank(message = "Studio name is required")
     private String name;
 
-    @NotBlank(message = "Адрес обязателен")
+    @NotBlank(message = "Address is required")
     private String address;
 }

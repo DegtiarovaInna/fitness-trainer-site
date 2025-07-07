@@ -9,8 +9,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.List;
 @Repository
 public interface BookingRepository extends JpaRepository<Booking, Long> {
@@ -21,7 +19,6 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             LocalDate date
     );
 
-    // 1) уникальные клиенты за период (дата аренды между start и end)
     @Query("""
       SELECT DISTINCT b.user
       FROM Booking b
@@ -34,7 +31,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             @Param("endDate")     LocalDate endDate
     );
 
-    // 2) заполняемость по дням: date → count
+
     @Query("""
       SELECT b.timeSlot.date AS day, COUNT(b)
       FROM Booking b
@@ -47,13 +44,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
             @Param("startDate")   LocalDate startDate,
             @Param("endDate")     LocalDate endDate
     );
-// проверить наличие пробного занятия за последний год
 boolean existsByUserIdAndTimeSlot_TrialTrueAndTimeSlot_DateAfter(Long userId, LocalDate date);
-
     boolean existsByTimeSlotIdAndStatusNot(Long timeSlotId, BookingStatus status);
-    /**
-     * Берёт все Booking на заданную дату (по свойству timeSlot.date),
-     * у которых статус НЕ отменён.
-     */
     List<Booking> findByTimeSlot_DateAndStatusNot(LocalDate date, BookingStatus status);
 }

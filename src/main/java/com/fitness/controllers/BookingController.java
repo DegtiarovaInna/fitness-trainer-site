@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.util.List;
 
-@Tag(name = "Booking", description = "Управление бронированиями")
+@Tag(name = "Booking", description = "Booking Management")
 @RestController
 @RequestMapping("/api/bookings")
 @RequiredArgsConstructor
@@ -71,8 +71,8 @@ public class BookingController {
             @RequestParam(required = false) Long userId,
             @RequestParam(required = false) Long studioId,
             @RequestParam(required = false) BookingStatus status,
-            @RequestParam(required = false) @Parameter(description="Начало периода, формат yyyy-MM-dd", example="2025-07-01") LocalDate start,
-            @RequestParam(required = false) @Parameter(description="Конец периода, формат yyyy-MM-dd", example="2025-07-31") LocalDate end
+            @RequestParam(required = false) @Parameter(description="Start of period, format yyyy-MM-dd", example="2025-07-01") LocalDate start,
+            @RequestParam(required = false) @Parameter(description="End of period, format yyyy-MM-dd", example="2025-07-31") LocalDate end
     ) {
         return ResponseEntity.ok(bookingService.searchBookings(userId, studioId, status, start, end));
     }

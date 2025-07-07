@@ -17,13 +17,13 @@ public class Studio {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String name;       // Название студии
-    private String address;    // Адрес
+    private String name;
+    private String address;
     @OneToOne
     @JoinColumn(name = "admin_id")
     private User admin;
     @OneToMany(mappedBy = "studio")
-    private List<TimeSlot> timeSlots;  // Слоты доступности
+    private List<TimeSlot> timeSlots;
 
     public User getAdmin() {
         return admin;

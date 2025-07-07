@@ -13,20 +13,20 @@ import java.time.LocalTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TimeSlotCreateDTO {
-    @NotNull(message = "Дата обязательна")
-    @Schema(description = "Дата в формате yyyy-MM-dd", example = "2025-05-21")
+    @NotNull(message = "Date is required")
+    @Schema(description = "Date in format yyyy-MM-dd", example = "2025-05-21")
     private LocalDate date;
 
-    @NotNull(message = "Время начала обязательно")
-    @Schema(description = "Время начала в формате HH:mm", example = "13:00")
+    @NotNull(message = "Start time is required")
+    @Schema(description = "Start time in format HH:mm", example = "13:00")
     private LocalTime startTime;
 
-    @NotNull(message = "Время окончания обязательно")
-    @Schema(description = "Время окончания в формате HH:mm", example = "14:30")
+    @NotNull(message = "End time is required")
+    @Schema(description = "End time in format HH:mm", example = "14:30")
     private LocalTime endTime;
 
 
-    @NotNull(message = "ID студии обязателен")
-    @Schema(description = "ID студии", example = "1")
+    @NotNull(message = "Studio ID is required")
+    @Schema(description = "Studio ID", example = "1")
     private Long studioId;
 }

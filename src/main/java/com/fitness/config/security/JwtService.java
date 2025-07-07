@@ -16,7 +16,7 @@ public class JwtService {
     private String secret;
 
     @Value("${jwt.expiration}")
-    private long expiration; // миллисекунды
+    private long expiration;
 
     @Value("${jwt.refreshExpiration}")
     private long refreshExpiration;

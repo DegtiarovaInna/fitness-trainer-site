@@ -12,24 +12,14 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class StudioDTO {
     private Long id;
-    @NotBlank(message = "Название студии обязательно")
-    @Schema(description = "Название студии", example = "Fitness Pro Studio")
+    @NotBlank(message = "Studio name is required")
+    @Schema(description = "Studio name", example = "Fitness Pro Studio")
     private String name;
-    @NotBlank(message = "Адрес обязателен")
-    @Schema(description = "Адрес студии", example = "г. MG, ул. Alls, д.10")
+    @NotBlank(message = "Address is required")
+    @Schema(description = "Studio address", example = "New York. Alls,10")
     private String address;
     private Long adminId;
 
-
-
-//    public Long getId() {
-//        return id;
-//    }
-//
-//    public void setId(Long id) {
-//        this.id = id;
-//    }
-//
     public Long getAdminId() {
         return adminId;
     }

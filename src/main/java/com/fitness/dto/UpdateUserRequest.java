@@ -8,21 +8,21 @@ import lombok.Data;
 
 @Data
 public class UpdateUserRequest {
-    @NotBlank(message = "Имя обязательно")
-    @Schema(description = "Имя пользователя", example = "Иван Иванов")
+    @NotBlank(message = "Name is required")
+    @Schema(description = "Username", example = "Alex Frolow")
     private String name;
 
-    @NotBlank(message = "Email обязателен")
-    @Email(message = "Некорректный формат email")
-    @Schema(description = "Email пользователя", example = "user@example.com")
+    @NotBlank(message = "Email is required")
+    @Email(message = "Incorrect email format")
+    @Schema(description = "User email", example = "user@example.com")
     private String email;
 
-    @NotBlank(message = "Телефон обязателен")
+    @NotBlank(message = "Phone is required")
     @Pattern(
             regexp = "^\\+?\\d{10,15}$",
-            message = "Некорректный формат телефона"
+            message = "Incorrect phone format"
     )
-    @Schema(description = "Номер телефона (10–15 цифр, может с +)", example = "+79991234567")
+    @Schema(description = "Phone number (10-15 digits, may include +)", example = "+79991234567")
     private String phoneNumber;
 
 }

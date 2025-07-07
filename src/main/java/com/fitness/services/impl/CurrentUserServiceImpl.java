@@ -5,6 +5,7 @@ import com.fitness.enums.Role;
 import com.fitness.exceptions.UserNotAuthenticatedException;
 import com.fitness.exceptions.errorMessage.ErrorMessage;
 import com.fitness.models.User;
+import com.fitness.services.interfaces.CurrentUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -12,7 +13,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class AuthServiceImpl implements com.fitness.services.interfaces.AuthService {
+public class CurrentUserServiceImpl implements CurrentUserService {
     public User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.getPrincipal() instanceof UserDetailsImpl userDetails) {

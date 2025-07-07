@@ -18,10 +18,7 @@ public interface TimeSlotRepository extends JpaRepository<TimeSlot, Long> {
     List<TimeSlot> findByStudioId(Long studioId);
     List<TimeSlot> findByStudioIdAndDateBetween(Long studioId, LocalDate startDate, LocalDate endDate);
     List<TimeSlot> findByStudioIdAndDateBetweenAndAvailableTrue(Long studioId, LocalDate startDate, LocalDate endDate);
-    /**
-     * Проверяет, существует ли в студии слот на ту же дату-период,
-     * исключая (при обновлении) слот с id = excludeSlotId.
-     */
+
     @Query("""
         SELECT CASE WHEN COUNT(t) > 0 THEN true ELSE false END
         FROM TimeSlot t

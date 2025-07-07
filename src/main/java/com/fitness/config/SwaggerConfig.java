@@ -18,7 +18,7 @@ public class SwaggerConfig {
                 .info(new Info()
                         .title("Fitness Trainer Booking API")
                         .version("1.0")
-                        .description("API документация для системы бронирования тренировок с тренером и студиями"))
+                        .description("API documentation for the booking system for training with a trainer and studios"))
                 .servers(List.of(new Server().url("http://localhost:8080")))
                 .components(new Components()
                         .addSecuritySchemes("BearerAuth",

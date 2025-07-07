@@ -6,10 +6,10 @@ import lombok.Data;
 
 @Data
 public class CreateBookingRequest {
-    @NotNull(message = "ID пользователя обязателен")
-    @Schema(description = "ID пользователя, который бронирует", example = "2")
+    @NotNull(message = "User ID is required")
+    @Schema(description = "User ID who is booking", example = "2")
     private Long userId;
-    @NotNull(message = "ID таймслота обязателен")
-    @Schema(description = "ID выбранного таймслота", example = "10")
+    @NotNull(message = "Timeslot ID is required")
+    @Schema(description = "ID of the selected timeslot", example = "10")
     private Long timeSlotId;
 }

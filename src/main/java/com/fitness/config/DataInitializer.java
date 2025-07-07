@@ -38,7 +38,7 @@ public class DataInitializer implements CommandLineRunner {
                     .updatedAt(LocalDateTime.now())
                     .build();
             userRepository.save(user);
-            System.out.printf("✔ Пользователь с ролью %s создан: %s / %s%n", role, email, password);
+            System.out.printf("✔ User with role %s created: %s / %s%n", role, email, password);
         }
     }
 }

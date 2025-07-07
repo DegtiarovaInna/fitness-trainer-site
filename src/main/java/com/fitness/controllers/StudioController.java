@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
-@Tag(name = "Studio", description = "Управление студиями")
+@Tag(name = "Studio", description = "Studio Management")
 @RestController
 @RequestMapping("/api/studios")
 @RequiredArgsConstructor

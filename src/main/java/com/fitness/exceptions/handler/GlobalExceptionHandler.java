@@ -33,6 +33,36 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(status).body(body);
     }
 // --- Пользовательские исключения ---
+@ExceptionHandler(CurrentPasswordInvalidException.class)
+public ResponseEntity<Map<String, String>> handleInvalidCurrentPassword(CurrentPasswordInvalidException ex) {
+    return buildResponse(
+            "INVALID_CURRENT_PASSWORD",
+            ex.getMessage(),
+            HttpStatus.UNAUTHORIZED
+    );
+}
+
+    @ExceptionHandler(PasswordsDoNotMatchException.class)
+    public ResponseEntity<Map<String, String>> handlePasswordsDoNotMatch(PasswordsDoNotMatchException ex) {
+        return buildResponse(
+                "PASSWORDS_DO_NOT_MATCH",
+                ex.getMessage(),
+                HttpStatus.BAD_REQUEST
+        );
+    }
+@ExceptionHandler(RefreshTokenException.class)
+public ResponseEntity<Map<String,String>> handleRefreshError(RefreshTokenException ex) {
+    return buildResponse("INVALID_REFRESH_TOKEN", ex.getMessage(), HttpStatus.UNAUTHORIZED);
+}
+    @ExceptionHandler(InvalidTokenException.class)
+   public ResponseEntity<Map<String,String>> handleInvalidToken(InvalidTokenException ex) {
+              return buildResponse("INVALID_TOKEN", ex.getMessage(), HttpStatus.UNAUTHORIZED);
+           }
+
+           @ExceptionHandler(AlreadyConfirmedException.class)
+   public ResponseEntity<Map<String,String>> handleAlreadyConfirmed(AlreadyConfirmedException ex) {
+               return buildResponse("ALREADY_CONFIRMED", ex.getMessage(), HttpStatus.OK);
+           }
 @ExceptionHandler(TimeSlotOverlapException.class)
 public ResponseEntity<Map<String,String>> handleOverlap(TimeSlotOverlapException ex) {
     return buildResponse("TIME_SLOT_OVERLAP", ex.getMessage(), HttpStatus.CONFLICT);

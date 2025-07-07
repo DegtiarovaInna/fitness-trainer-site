@@ -9,12 +9,12 @@ import lombok.Data;
 @Data
 public class ChangePasswordRequest {
     @NotBlank
-    @Schema(description="Текущий пароль")
+    @Schema(description="Current Password")
     private String currentPassword;
 
     @NotBlank
     @Size(min=8) @Pattern(regexp="^(?=.*[A-Za-z])(?=.*\\d).*$")
-    @Schema(description="Новый пароль (минимум 8 символов, буквы+цифры)")
+    @Schema(description="New password (minimum 8 characters, letters + numbers)")
     private String newPassword;
 
     @NotBlank
