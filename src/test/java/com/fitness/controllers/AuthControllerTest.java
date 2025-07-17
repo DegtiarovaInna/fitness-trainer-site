@@ -13,6 +13,7 @@ import com.fitness.exceptions.errorMessage.ErrorMessage;
 import com.fitness.services.interfaces.AuthenticationService;
 import com.fitness.services.interfaces.ConfirmationService;
 import com.fitness.services.interfaces.UserService;
+import com.fitness.services.interfaces.PasswordResetService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +21,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.MediaType;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -53,6 +53,8 @@ public class AuthControllerTest {
 
     @MockBean
     private UserDetailsServiceImpl userDetailsService;
+    @MockBean
+    private PasswordResetService passwordResetService;
 
     @Test
     @DisplayName("POST /auth/register — успешная регистрация")

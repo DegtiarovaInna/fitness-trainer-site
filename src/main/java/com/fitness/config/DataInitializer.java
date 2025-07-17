@@ -34,6 +34,7 @@ public class DataInitializer implements CommandLineRunner {
                     .password(passwordEncoder.encode(password))
                     .phoneNumber(phone)
                     .role(role)
+                    .enabled(true)
                     .createdAt(LocalDateTime.now())
                     .updatedAt(LocalDateTime.now())
                     .build();

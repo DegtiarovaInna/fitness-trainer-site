@@ -24,4 +24,5 @@ public class ErrorMessage {
     public static final String TIME_SLOT_OVERLAP = "A slot has already been created for the specified time in this gym";
     public static final String INVALID_TIME_RANGE = "The end time must be later than the start time.";
     public static final String TRAINER_NOT_AVAILABLE_STUDIO_SWITCH = "Trainer is not available for this time slot considering studio switch";
+    public static final String EMAIL_NOT_CONFIRMED = "Email not confirmed";
 }

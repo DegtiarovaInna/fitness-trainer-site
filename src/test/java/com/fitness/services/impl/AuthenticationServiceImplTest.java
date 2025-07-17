@@ -4,7 +4,9 @@ import com.fitness.config.security.JwtService;
 import com.fitness.dto.AuthResponse;
 import com.fitness.exceptions.errorMessage.ErrorMessage;
 import com.fitness.models.RefreshToken;
+import com.fitness.models.User;
 import com.fitness.repositories.RefreshTokenRepository;
+import com.fitness.repositories.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -20,6 +22,7 @@ public class AuthenticationServiceImplTest {
     private AuthenticationManager authManager;
     private JwtService jwtService;
     private RefreshTokenRepository refreshTokenRepo;
+    private UserRepository userRepository;
     private AuthenticationServiceImpl service;
 
     @BeforeEach
@@ -27,8 +30,10 @@ public class AuthenticationServiceImplTest {
         authManager       = mock(AuthenticationManager.class);
         jwtService        = mock(JwtService.class);
         refreshTokenRepo  = mock(RefreshTokenRepository.class);
-        service = new AuthenticationServiceImpl(authManager, jwtService, refreshTokenRepo);
+        userRepository    = mock(UserRepository.class);
+        service = new AuthenticationServiceImpl(authManager, jwtService, refreshTokenRepo, userRepository);
     }
+
 
     // login
     @Test
@@ -39,6 +44,10 @@ public class AuthenticationServiceImplTest {
         String refresh = "refresh-token";
         long refreshExp = 5_000L;
 
+                User u = new User();
+                u.setEmail(email);
+                u.setEnabled(true);
+                when(userRepository.findByEmail(email)).thenReturn(Optional.of(u));
         when(jwtService.generateToken(email)).thenReturn(access);
         when(jwtService.generateRefreshToken(email)).thenReturn(refresh);
         when(jwtService.getRefreshExpiration()).thenReturn(refreshExp);

@@ -7,6 +7,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -22,17 +23,17 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleRateLimit(RequestNotPermitted ex) {
         return ResponseEntity
                 .status(HttpStatus.TOO_MANY_REQUESTS)
-                .body("Слишком много попыток входа, попробуйте позже");
+                .body("Too many login attempts, please try again later");
     }
 
-    // Универсальный формат ответа с ошибкой
+
     private ResponseEntity<Map<String, String>> buildResponse(String errorCode, String message, HttpStatus status) {
         Map<String, String> body = new HashMap<>();
         body.put("error", errorCode);
         body.put("message", message);
         return ResponseEntity.status(status).body(body);
     }
-// --- Пользовательские исключения ---
+
 @ExceptionHandler(CurrentPasswordInvalidException.class)
 public ResponseEntity<Map<String, String>> handleInvalidCurrentPassword(CurrentPasswordInvalidException ex) {
     return buildResponse(
@@ -132,14 +133,25 @@ public ResponseEntity<Map<String,String>> handleOverlap(TimeSlotOverlapException
     }
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<Map<String, String>> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
-        // Дополнительно можно проверить текст ex.getRootCause().getMessage()
-        // если нужно обрабатывать разные ограничения
         Map<String, String> body = Map.of(
                 "error", "EMAIL_ALREADY_EXISTS",
                 "message", ErrorMessage.USER_EMAIL_ALREADY_EXISTS
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
+    @ExceptionHandler(EmailNotConfirmedException.class)
+    public ResponseEntity<Map<String, String>> handleEmailNotConfirmed(EmailNotConfirmedException ex) {
+                return buildResponse("EMAIL_NOT_CONFIRMED", ex.getMessage(), HttpStatus.UNAUTHORIZED);
+            }
+
+            @ExceptionHandler(DisabledException.class)
+    public ResponseEntity<Map<String, String>> handleDisabled(DisabledException ex) {
+                return buildResponse(
+                            "EMAIL_NOT_CONFIRMED",
+                            ErrorMessage.EMAIL_NOT_CONFIRMED,
+                            HttpStatus.UNAUTHORIZED
+                                );
+            }
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
@@ -154,12 +166,10 @@ public ResponseEntity<Map<String,String>> handleOverlap(TimeSlotOverlapException
     public ResponseEntity<Map<String, String>> handleBadCredentials(BadCredentialsException ex) {
         return buildResponse("INVALID_CREDENTIALS", "Invalid email or password", HttpStatus.UNAUTHORIZED);
     }
-    // --- Общий обработчик непредвиденных ошибок ---
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleAllUncaughtException(Exception ex) {
-        // Можно логировать ex для отладки
-        ex.printStackTrace(); // В проде лучше логировать через логгер
-
+        ex.printStackTrace();
         return buildResponse("INTERNAL_SERVER_ERROR", "An unexpected error occurred. Please try again later.", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
