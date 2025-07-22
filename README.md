@@ -14,6 +14,11 @@ Full-featured backend for a personal fitness trainer's studio booking system.
 - ✅ One trial session per user per year
 - ✅ Swagger UI for API documentation
 - ✅ PostgreSQL support with JPA/Hibernate
+- ✅ E-mail verification with “resend link” option
+- ✅ Login rate-limiting (Resilience4j)
+- ✅ Password-reset flow (request → token check → new password)
+- ✅ Scheduled cleanup of stale unconfirmed accounts (7 days)
+- ✅ Transactional e-mail delivery via SendGrid API
 
 ---
 
@@ -35,6 +40,9 @@ Swagger UI available at:
 | Docs             | Swagger + OpenAPI              |
 | DTO Mapping      | MapStruct                      |
 | Build Tool       | Maven                          |
+| Messaging        | SendGrid Cloud E-mail          |
+| Resilience       | Resilience4j RateLimiter       |
+| Scheduling       | Spring Task Scheduling (@Scheduled) |
 ---
 ## 🚀 Getting Started
 
@@ -82,3 +90,7 @@ Spring Boot loads .env via
 spring.config.import=optional:file:.env[.properties].
 
 Docker Compose also auto-loads .env, so local and container runs stay in sync.
+
+The backend sends verification / reset links via SendGrid.
+Set SENDGRID_API_KEY, MAIL_FROM and APP_BASE_URL in `.env` even for local runs
+(otherwise links will still be printed to console for dev profiles).

@@ -20,6 +20,8 @@ public class JwtService {
 
     @Value("${jwt.refreshExpiration}")
     private long refreshExpiration;
+    @Value("${jwt.resetExpiration}")
+    private long resetExpiration;
 
     public String generateToken(String email) {
         return buildToken(email, expiration, "access");
@@ -82,7 +84,27 @@ public class JwtService {
     private Key getSignKey() {
         return Keys.hmacShaKeyFor(secret.getBytes());
     }
+
     public long getRefreshExpiration() {
         return refreshExpiration;
+    }
+
+    public String generateResetToken(String email) {
+        return buildToken(email, resetExpiration, "reset");
+    }
+
+    public boolean isResetToken(String token, UserDetails userDetails) {
+        try {
+            Claims c = Jwts.parserBuilder()
+                    .setSigningKey(getSignKey())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+            return c.getSubject().equals(userDetails.getUsername())
+                    && c.getExpiration().after(new Date())
+                    && "reset".equals(c.get("type", String.class));
+        } catch (JwtException e) {
+            return false;
+        }
     }
 }

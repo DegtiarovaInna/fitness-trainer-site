@@ -20,6 +20,7 @@ public class Booking {
     private Long id;
 
     private LocalDateTime createdAt;
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();

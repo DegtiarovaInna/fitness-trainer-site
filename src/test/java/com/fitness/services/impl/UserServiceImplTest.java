@@ -4,13 +4,13 @@ import com.fitness.dto.ChangePasswordRequest;
 import com.fitness.dto.RegisterUserRequest;
 import com.fitness.dto.UpdateUserRequest;
 import com.fitness.dto.UserDTO;
+import com.fitness.enums.BookingStatus;
 import com.fitness.enums.Role;
 import com.fitness.exceptions.UserNotFoundException;
-import com.fitness.exceptions.errorMessage.ErrorMessage;
 import com.fitness.mappers.UserMapper;
 import com.fitness.models.User;
 import com.fitness.repositories.UserRepository;
-import com.fitness.services.interfaces.CurrentUserService;
+import com.fitness.repositories.BookingRepository;
 import com.fitness.services.interfaces.EmailService;
 import com.fitness.services.interfaces.SecurityService;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,30 +26,31 @@ import static org.mockito.Mockito.*;
 public class UserServiceImplTest {
     private UserRepository userRepo;
     private UserMapper userMapper;
-    private CurrentUserService currentUserService;
     private SecurityService securityService;
     private PasswordEncoder passwordEncoder;
     private JwtService jwtService;
     private EmailService emailService;
     private UserServiceImpl service;
+    private BookingRepository bookingRepository;
+
 
     @BeforeEach
     void setUp() {
         userRepo = mock(UserRepository.class);
         userMapper = mock(UserMapper.class);
-        currentUserService = mock(CurrentUserService.class);
         securityService = mock(SecurityService.class);
         passwordEncoder = mock(PasswordEncoder.class);
         jwtService = mock(JwtService.class);
         emailService = mock(EmailService.class);
+        bookingRepository = mock(BookingRepository.class);
         service = new UserServiceImpl(
                 userRepo,
                 userMapper,
-                currentUserService,
                 securityService,
                 passwordEncoder,
                 jwtService,
-                emailService
+                emailService,
+                bookingRepository
         );
     }
 
@@ -121,7 +122,11 @@ public class UserServiceImplTest {
         dto.setName("Bob");
         dto.setEmail("bob@example.com");
         dto.setPhoneNumber("+0987654321");
-        User user = new User(); user.setId(4L);
+        User user = new User();
+        user.setId(4L);
+        user.setName("Old");
+        user.setEmail("old@example.com");
+        user.setPhoneNumber("+111111111");
         when(userRepo.findById(4L)).thenReturn(Optional.of(user));
         User saved = new User(); saved.setId(4L);
         when(userRepo.save(user)).thenReturn(saved);
@@ -142,8 +147,10 @@ public class UserServiceImplTest {
     // changePassword
     @Test
     void changePassword_wrongCurrent_throws() {
+        User u = new User();
+        u.setPassword("123@encoded");
         when(userRepo.findById(6L)).thenReturn(Optional.of(new User()));
-        when(passwordEncoder.matches("old","encoded")).thenReturn(false);
+        when(passwordEncoder.matches("old","123@encoded")).thenReturn(false);
         var req = new ChangePasswordRequest();
         req.setCurrentPassword("old");
         req.setNewPassword("newPass1");
@@ -186,8 +193,11 @@ public class UserServiceImplTest {
     void deleteUser_existing_deletes() {
         User u = new User(); u.setId(9L);
         when(userRepo.findById(9L)).thenReturn(Optional.of(u));
+        when(bookingRepository.existsByUserIdAndStatusNot(9L, BookingStatus.CANCELLED))
+                .thenReturn(false);
         service.deleteUser(9L);
         verify(securityService).requireSelfOrAdminOrDev(9L);
+        verify(bookingRepository).existsByUserIdAndStatusNot(9L, BookingStatus.CANCELLED);
         verify(userRepo).delete(u);
     }
 

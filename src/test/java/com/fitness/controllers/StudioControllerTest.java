@@ -46,7 +46,7 @@ public class StudioControllerTest {
     private UserDetailsServiceImpl userDetailsService;
 
     @Test
-    @DisplayName("POST /api/studios — успешное создание студии")
+    @DisplayName("POST /api/studios — success")
     void createStudio_success() throws Exception {
         var req = new StudioCreateUpdateDTO("Yoga Place", "123 Main St");
 
@@ -67,7 +67,7 @@ public class StudioControllerTest {
     }
 
     @Test
-    @DisplayName("GET /api/studios/{id} — успешное получение студии")
+    @DisplayName("GET /api/studios/{id} — success")
     void getStudio_success() throws Exception {
         var dto = new StudioDTO();
         dto.setId(2L);
@@ -84,19 +84,21 @@ public class StudioControllerTest {
     }
 
     @Test
-    @DisplayName("GET /api/studios/{id} — студия не найдена")
+    @DisplayName("GET /api/studios/{id} — not found → 404 NOT_FOUND")
     void getStudio_notFound() throws Exception {
         when(studioService.getStudio(99L))
                 .thenThrow(new StudioNotFoundException(ErrorMessage.STUDIO_NOT_FOUND));
 
         mvc.perform(get("/api/studios/99"))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error").value("STUDIO_NOT_FOUND"))
-                .andExpect(jsonPath("$.message").value(ErrorMessage.STUDIO_NOT_FOUND));
+                .andExpect(jsonPath("$.error").value("NOT_FOUND"))
+                .andExpect(jsonPath("$.message")
+                        .value(ErrorMessage.STUDIO_NOT_FOUND));
     }
 
+
     @Test
-    @DisplayName("GET /api/studios — успешное получение списка студий")
+    @DisplayName("GET /api/studios — Successfully retrieved the list of studios")
     void getAllStudios_success() throws Exception {
         var dto1 = new StudioDTO(); dto1.setId(3L);
         var dto2 = new StudioDTO(); dto2.setId(4L);
@@ -111,7 +113,7 @@ public class StudioControllerTest {
     }
 
     @Test
-    @DisplayName("PUT /api/studios/{id} — успешное обновление студии")
+    @DisplayName("PUT /api/studios/{id} — successful studio update")
     void updateStudio_success() throws Exception {
         var req = new StudioCreateUpdateDTO("New Name", "789 Oak St");
 
@@ -132,10 +134,9 @@ public class StudioControllerTest {
     }
 
     @Test
-    @DisplayName("PUT /api/studios/{id} — студия не найдена при обновлении")
+    @DisplayName("PUT /api/studios/{id} — not found → 404 NOT_FOUND")
     void updateStudio_notFound() throws Exception {
-        var req = new StudioCreateUpdateDTO("X", "Y");
-
+        var req = new StudioCreateUpdateDTO("X","Y");
         doThrow(new StudioNotFoundException(ErrorMessage.STUDIO_NOT_FOUND))
                 .when(studioService).updateStudio(eq(6L), any());
 
@@ -143,12 +144,13 @@ public class StudioControllerTest {
                         .contentType(APPLICATION_JSON)
                         .content(mapper.writeValueAsString(req)))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error").value("STUDIO_NOT_FOUND"))
-                .andExpect(jsonPath("$.message").value(ErrorMessage.STUDIO_NOT_FOUND));
+                .andExpect(jsonPath("$.error").value("NOT_FOUND"))
+                .andExpect(jsonPath("$.message")
+                        .value(ErrorMessage.STUDIO_NOT_FOUND));
     }
 
     @Test
-    @DisplayName("DELETE /api/studios/{id} — успешное удаление студии")
+    @DisplayName("DELETE /api/studios/{id} — successful studio removal")
     void deleteStudio_success() throws Exception {
         doNothing().when(studioService).deleteStudio(7L);
 
@@ -157,19 +159,20 @@ public class StudioControllerTest {
     }
 
     @Test
-    @DisplayName("DELETE /api/studios/{id} — студия не найдена при удалении")
+    @DisplayName("DELETE /api/studios/{id} — not found → 404 NOT_FOUND")
     void deleteStudio_notFound() throws Exception {
         doThrow(new StudioNotFoundException(ErrorMessage.STUDIO_NOT_FOUND))
                 .when(studioService).deleteStudio(8L);
 
         mvc.perform(delete("/api/studios/8"))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error").value("STUDIO_NOT_FOUND"))
-                .andExpect(jsonPath("$.message").value(ErrorMessage.STUDIO_NOT_FOUND));
+                .andExpect(jsonPath("$.error").value("NOT_FOUND"))
+                .andExpect(jsonPath("$.message")
+                        .value(ErrorMessage.STUDIO_NOT_FOUND));
     }
 
     @Test
-    @DisplayName("GET /api/studios/{studioId}/unique-clients — успешный подсчет уникальных клиентов")
+    @DisplayName("GET /api/studios/{studioId}/unique-clients — successful unique customer counting")
     void getUniqueClients_success() throws Exception {
         when(studioService.countUniqueClients(
                 eq(9L),
@@ -185,7 +188,7 @@ public class StudioControllerTest {
     }
 
     @Test
-    @DisplayName("GET /api/studios/{studioId}/occupancy — успешное получение заполняемости")
+    @DisplayName("GET /api/studios/{studioId}/occupancy — successful completion of occupancy")
     void getOccupancy_success() throws Exception {
         var occupancy = Map.of(
                 LocalDate.parse("2025-07-01"), 5,
@@ -206,7 +209,7 @@ public class StudioControllerTest {
     }
 
     @Test
-    @DisplayName("GET /api/studios/{studioId}/clients — успешное получение списка клиентов")
+    @DisplayName("GET /api/studios/{studioId}/clients — Successfully retrieved customer list")
     void getUniqueClientsByStudio_success() throws Exception {
         var user = new UserDTO();
         user.setId(11L);
@@ -223,7 +226,7 @@ public class StudioControllerTest {
     }
 
     @Test
-    @DisplayName("PUT /api/studios/{studioId}/admin/{userId} — успешное назначение администратора")
+    @DisplayName("PUT /api/studios/{studioId}/admin/{userId} — successful assignment of administrator")
     void assignAdmin_success() throws Exception {
         var dto = new StudioDTO();
         dto.setId(12L);

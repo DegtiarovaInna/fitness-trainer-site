@@ -13,14 +13,15 @@ import com.fitness.exceptions.errorMessage.ErrorMessage;
 import com.fitness.services.interfaces.AuthenticationService;
 import com.fitness.services.interfaces.ConfirmationService;
 import com.fitness.services.interfaces.UserService;
+import com.fitness.services.interfaces.PasswordResetService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.MediaType;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -29,8 +30,10 @@ import static org.mockito.Mockito.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
-@WebMvcTest(AuthController.class)
+@WebMvcTest(
+        value = AuthController.class,
+        excludeAutoConfiguration = UserDetailsServiceAutoConfiguration.class   // ✱ NEW ✱
+)
 @AutoConfigureMockMvc(addFilters = false)
 public class AuthControllerTest {
     @Autowired
@@ -53,9 +56,11 @@ public class AuthControllerTest {
 
     @MockBean
     private UserDetailsServiceImpl userDetailsService;
+    @MockBean
+    private PasswordResetService passwordResetService;
 
     @Test
-    @DisplayName("POST /auth/register — успешная регистрация")
+    @DisplayName("POST /auth/register — successful registration")
     void registerUser_success() throws Exception {
         var req = new RegisterUserRequest();
         req.setName("Inna");
@@ -85,7 +90,7 @@ public class AuthControllerTest {
     }
 
     @Test
-    @DisplayName("POST /auth/login — успешный вход")
+    @DisplayName("POST /auth/login — successful login")
     void login_success() throws Exception {
         String email = "inna@example.com";
         String pass  = "secret";
@@ -104,7 +109,7 @@ public class AuthControllerTest {
     }
 
     @Test
-    @DisplayName("POST /auth/refresh — успешный refresh")
+    @DisplayName("POST /auth/refresh — successful refresh")
     void refresh_success() throws Exception {
         String rtoken = "rtoken";
         var auth     = new AuthResponse("newAccess", rtoken);
@@ -121,7 +126,7 @@ public class AuthControllerTest {
     }
 
     @Test
-    @DisplayName("GET /auth/confirm — подтверждение email")
+    @DisplayName("GET /auth/confirm — email confirmation")
     void confirmEmail_success() throws Exception {
         String token = "sometoken";
 
@@ -134,7 +139,7 @@ public class AuthControllerTest {
     }
 
     @Test
-    @DisplayName("POST /auth/resend — повторно выслать подтверждение")
+    @DisplayName("POST /auth/resend — resend confirmation")
     void resendConfirmation_success() throws Exception {
         String email = "inna@example.com";
 
@@ -145,7 +150,7 @@ public class AuthControllerTest {
         verify(confirmationService).resendConfirmationEmail(email);
     }
 
-    @Test @DisplayName("POST /auth/register — неверный пароль возвращает 400")
+    @Test @DisplayName("POST /auth/register — Invalid password returns 400")
     void registerUser_validationError() throws Exception {
         var req = new RegisterUserRequest();
         req.setName("Inna");
@@ -160,7 +165,7 @@ public class AuthControllerTest {
                         .value("The password must contain letters and numbers"));
     }
     @Test
-    @DisplayName("POST /auth/register — дублирование email → 400 EMAIL_ALREADY_EXISTS")
+    @DisplayName("POST /auth/register — email duplication → 400 EMAIL_ALREADY_EXISTS")
     void registerUser_emailExists() throws Exception {
         var req = new RegisterUserRequest();
         req.setName("Inna");
@@ -180,7 +185,7 @@ public class AuthControllerTest {
                         .value(ErrorMessage.USER_EMAIL_ALREADY_EXISTS));
     }
     @Test
-    @DisplayName("POST /auth/login — плохие креды → 401 INVALID_CREDENTIALS")
+    @DisplayName("POST /auth/login — bad creds → 401 INVALID_CREDENTIALS")
     void login_badCredentials() throws Exception {
         doThrow(new BadCredentialsException("bad"))
                 .when(authenticationService).login(anyString(), anyString());
@@ -194,7 +199,7 @@ public class AuthControllerTest {
                         .value("Invalid email or password"));
     }
     @Test
-    @DisplayName("POST /auth/refresh — неверный refresh → 401 INVALID_REFRESH_TOKEN")
+    @DisplayName("POST /auth/refresh — invalid refresh → 401 INVALID_REFRESH_TOKEN")
     void refresh_invalidToken() throws Exception {
         doThrow(new RefreshTokenException("nope"))
                 .when(authenticationService).refresh(anyString());
@@ -206,7 +211,7 @@ public class AuthControllerTest {
                 .andExpect(jsonPath("$.message").value("nope"));
     }
     @Test
-    @DisplayName("GET /auth/confirm — токен неверный → 401 INVALID_TOKEN")
+    @DisplayName("GET /auth/confirm — token is invalid → 401 INVALID_TOKEN")
     void confirmEmail_invalidToken() throws Exception {
         doThrow(new InvalidTokenException("bad"))
                 .when(confirmationService).confirmToken(anyString());
@@ -219,16 +224,15 @@ public class AuthControllerTest {
     }
 
     @Test
-    @DisplayName("GET /auth/confirm — уже подтверждён → 200 ALREADY_CONFIRMED")
+    @DisplayName("GET /auth/confirm — already confirmed → 400 BUSINESS_ERROR")
     void confirmEmail_already() throws Exception {
         doThrow(new AlreadyConfirmedException("been here"))
                 .when(confirmationService).confirmToken(anyString());
 
         mvc.perform(get("/auth/confirm")
                         .param("token", "still"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.error").value("ALREADY_CONFIRMED"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("BUSINESS_ERROR"))
                 .andExpect(jsonPath("$.message").value("been here"));
     }
-
 }
