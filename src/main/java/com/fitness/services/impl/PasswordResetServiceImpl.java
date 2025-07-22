@@ -5,6 +5,7 @@ import com.fitness.exceptions.errorMessage.ErrorMessage;
 import com.fitness.repositories.UserRepository;
 import com.fitness.services.interfaces.EmailService;
 import com.fitness.services.interfaces.PasswordResetService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -29,7 +30,7 @@ public class PasswordResetServiceImpl implements PasswordResetService {
         String token = jwtService.generateResetToken(email);
         emailService.sendPasswordResetEmail(email, token);
     }
-
+    @Transactional
     @Override
     public void resetPassword(String token, String newPassword) {
         String email = jwtService.extractUsername(token);

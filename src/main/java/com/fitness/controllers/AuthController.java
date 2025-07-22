@@ -32,7 +32,6 @@ public class AuthController {
 
 
     @PostMapping("/register")
-    @PermitAll
     public ResponseEntity<UserDTO> registerUser(@Valid @RequestBody RegisterUserRequest registerUserRequest) {
         UserDTO userDTO = userService.registerUser(registerUserRequest);
         return ResponseEntity.ok(userDTO);
@@ -53,28 +52,24 @@ public class AuthController {
               return ResponseEntity.ok(authenticationService.refresh(refreshToken));
           }
     @GetMapping("/confirm")
-    @PermitAll
     public ResponseEntity<String> confirmEmail(@RequestParam String token) {
         confirmationService.confirmToken(token);
               return ResponseEntity.ok("Email confirmed. You can now login.");
     }
 
     @PostMapping("/resend")
-    @PermitAll
     public ResponseEntity<Void> resendConfirmation(@RequestParam String email) {
         confirmationService.resendConfirmationEmail(email);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/reset/request")
-   @PermitAll
    public ResponseEntity<Void> requestReset(@RequestParam String email) {
                passwordResetService.requestReset(email);
                return ResponseEntity.noContent().build();
            }
 
           @PostMapping("/resetPassword")
-   @PermitAll
    public ResponseEntity<Void> resetPassword(
            @RequestParam String token,
            @RequestParam String newPassword
@@ -84,7 +79,6 @@ public class AuthController {
            }
 
     @GetMapping("/reset")
-    @PermitAll
     public ResponseEntity<Void> checkResetToken(@RequestParam String token) {
 
         String email;

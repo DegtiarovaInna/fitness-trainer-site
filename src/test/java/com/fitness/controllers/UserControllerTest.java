@@ -8,6 +8,7 @@ import com.fitness.dto.UpdateUserRequest;
 import com.fitness.dto.UserDTO;
 import com.fitness.exceptions.UserNotFoundException;
 import com.fitness.exceptions.errorMessage.ErrorMessage;
+import com.fitness.services.interfaces.CurrentUserService;
 import com.fitness.services.interfaces.UserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -41,10 +42,12 @@ public class UserControllerTest {
     private JwtService jwtService;
     @MockBean
     private UserDetailsServiceImpl userDetailsService;
+    @MockBean
+    private CurrentUserService currentUserService;
 
 
     @Test
-    @DisplayName("GET /api/users/{id} — успешное получение пользователя")
+    @DisplayName("GET /api/users/{id} — successful get")
     void getUser_success() throws Exception {
         var dto = new UserDTO();
         dto.setId(1L);
@@ -64,19 +67,19 @@ public class UserControllerTest {
     }
 
     @Test
-    @DisplayName("GET /api/users/{id} — пользователь не найден")
+    @DisplayName("GET /api/users/{id} — user not found")
     void getUser_notFound() throws Exception {
         when(userService.getUser(99L))
                 .thenThrow(new UserNotFoundException(ErrorMessage.USER_NOT_FOUND));
 
         mvc.perform(get("/api/users/99"))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error").value("USER_NOT_FOUND"))
+                .andExpect(jsonPath("$.error").value("NOT_FOUND"))
                 .andExpect(jsonPath("$.message").value(ErrorMessage.USER_NOT_FOUND));
     }
 
     @Test
-    @DisplayName("GET /api/users — успешное получение списка пользователей")
+    @DisplayName("GET /api/users — Successfully get of user list")
     void getAllUsers_success() throws Exception {
         var dto1 = new UserDTO();
         dto1.setId(1L);
@@ -101,7 +104,7 @@ public class UserControllerTest {
     }
 
     @Test
-    @DisplayName("PUT /api/users/{id} — успешное обновление пользователя")
+    @DisplayName("PUT /api/users/{id} — successful user update")
     void updateUser_success() throws Exception {
         var req = new UpdateUserRequest();
         req.setName("NewName");
@@ -128,7 +131,7 @@ public class UserControllerTest {
     }
 
     @Test
-    @DisplayName("PUT /api/users/{id} — пользователь не найден при обновлении")
+    @DisplayName("PUT /api/users/{id} — user not found during update")
     void updateUser_notFound() throws Exception {
         var req = new UpdateUserRequest();
         req.setName("Xsdf");
@@ -142,31 +145,31 @@ public class UserControllerTest {
                         .contentType(APPLICATION_JSON)
                         .content(mapper.writeValueAsString(req)))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error").value("USER_NOT_FOUND"))
+                .andExpect(jsonPath("$.error").value("NOT_FOUND"))
                 .andExpect(jsonPath("$.message").value(ErrorMessage.USER_NOT_FOUND));
     }
 
     @Test
-    @DisplayName("DELETE /api/users/{id} — успешное удаление пользователя")
+    @DisplayName("DELETE /api/users/{id} — successful user deletion")
     void deleteUser_success() throws Exception {
         mvc.perform(delete("/api/users/3"))
                 .andExpect(status().isNoContent());
     }
 
     @Test
-    @DisplayName("DELETE /api/users/{id} — пользователь не найден при удалении")
+    @DisplayName("DELETE /api/users/{id} — user not found when deleting")
     void deleteUser_notFound() throws Exception {
         doThrow(new UserNotFoundException(ErrorMessage.USER_NOT_FOUND))
                 .when(userService).deleteUser(7L);
 
         mvc.perform(delete("/api/users/7"))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error").value("USER_NOT_FOUND"))
+                .andExpect(jsonPath("$.error").value("NOT_FOUND"))
                 .andExpect(jsonPath("$.message").value(ErrorMessage.USER_NOT_FOUND));
     }
 
     @Test
-    @DisplayName("PUT /api/users/{id}/password — успешная смена пароля")
+    @DisplayName("PUT /api/users/{id}/password — password change successful")
     void changePassword_success() throws Exception {
         var req = new ChangePasswordRequest();
         req.setCurrentPassword("old12345678");
@@ -180,7 +183,7 @@ public class UserControllerTest {
     }
 
     @Test
-    @DisplayName("PUT /api/users/{id}/password — неверный текущий пароль")
+    @DisplayName("PUT /api/users/{id}/password — Incorrect current password")
     void changePassword_invalidCurrent() throws Exception {
         var req = new ChangePasswordRequest();
         req.setCurrentPassword("wrong1234");
@@ -199,7 +202,7 @@ public class UserControllerTest {
     }
 
     @Test
-    @DisplayName("PUT /api/users/{id}/password — новые пароли не совпадают")
+    @DisplayName("PUT /api/users/{id}/password — new passwords do not match")
     void changePassword_mismatch() throws Exception {
         var req = new ChangePasswordRequest();
         req.setCurrentPassword("old111222");

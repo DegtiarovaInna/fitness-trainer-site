@@ -48,7 +48,7 @@ public class BookingControllerTest {
     private UserDetailsServiceImpl userDetailsService;
 
     @Test
-    @DisplayName("POST /api/bookings/me — успешное создание бронирования для текущего пользователя")
+    @DisplayName("POST /api/bookings/me — successful own booking")
     void createOwnBooking_success() throws Exception {
         var req = new CreateOwnBookingRequest();
         req.setTimeSlotId(10L);
@@ -71,7 +71,7 @@ public class BookingControllerTest {
     }
 
     @Test
-    @DisplayName("POST /api/bookings/me — создание бронирования не разрешено")
+    @DisplayName("POST /api/bookings/me — creation not allowed → 403 FORBIDDEN")
     void createOwnBooking_notAllowed() throws Exception {
         var req = new CreateOwnBookingRequest();
         req.setTimeSlotId(10L);
@@ -83,12 +83,13 @@ public class BookingControllerTest {
                         .contentType(APPLICATION_JSON)
                         .content(mapper.writeValueAsString(req)))
                 .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.error").value("BOOKING_CREATE_FOR_ANOTHER_USER"))
-                .andExpect(jsonPath("$.message").value(ErrorMessage.BOOKING_CREATE_FOR_ANOTHER_USER));
+                .andExpect(jsonPath("$.error").value("FORBIDDEN"))
+                .andExpect(jsonPath("$.message")
+                        .value(ErrorMessage.BOOKING_CREATE_FOR_ANOTHER_USER));
     }
 
     @Test
-    @DisplayName("POST /api/bookings — успешное создание бронирования для пользователя")
+    @DisplayName("POST /api/bookings — successful user booking")
     void createBookingForUser_success() throws Exception {
         var req = new CreateBookingRequest();
         req.setUserId(2L);
@@ -114,7 +115,7 @@ public class BookingControllerTest {
     }
 
     @Test
-    @DisplayName("POST /api/bookings — создание бронирования для пользователя не разрешено")
+    @DisplayName("POST /api/bookings — creation not allowed → 403 FORBIDDEN")
     void createBookingForUser_notAllowed() throws Exception {
         var req = new CreateBookingRequest();
         req.setUserId(2L);
@@ -127,12 +128,13 @@ public class BookingControllerTest {
                         .contentType(APPLICATION_JSON)
                         .content(mapper.writeValueAsString(req)))
                 .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.error").value("BOOKING_CREATE_FOR_ANOTHER_USER"))
-                .andExpect(jsonPath("$.message").value(ErrorMessage.BOOKING_CREATE_FOR_ANOTHER_USER));
+                .andExpect(jsonPath("$.error").value("FORBIDDEN"))
+                .andExpect(jsonPath("$.message")
+                        .value(ErrorMessage.BOOKING_CREATE_FOR_ANOTHER_USER));
     }
 
     @Test
-    @DisplayName("GET /api/bookings/{id} — успешное получение бронирования")
+    @DisplayName("GET /api/bookings/{id} — success")
     void getBooking_success() throws Exception {
         var dto = new BookingDTO();
         dto.setId(3L);
@@ -148,19 +150,20 @@ public class BookingControllerTest {
     }
 
     @Test
-    @DisplayName("GET /api/bookings/{id} — бронирование не найдено")
+    @DisplayName("GET /api/bookings/{id} — not found → 404 NOT_FOUND")
     void getBooking_notFound() throws Exception {
         when(bookingService.getBooking(99L))
                 .thenThrow(new BookingNotFoundException(ErrorMessage.BOOKING_NOT_FOUND));
 
         mvc.perform(get("/api/bookings/99"))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error").value("BOOKING_NOT_FOUND"))
-                .andExpect(jsonPath("$.message").value(ErrorMessage.BOOKING_NOT_FOUND));
+                .andExpect(jsonPath("$.error").value("NOT_FOUND"))
+                .andExpect(jsonPath("$.message")
+                        .value(ErrorMessage.BOOKING_NOT_FOUND));
     }
 
     @Test
-    @DisplayName("GET /api/bookings — успешное получение списка бронирований")
+    @DisplayName("GET /api/bookings ")
     void getAllBookings_success() throws Exception {
         var dto1 = new BookingDTO(); dto1.setId(4L);
         var dto2 = new BookingDTO(); dto2.setId(5L);
@@ -176,7 +179,7 @@ public class BookingControllerTest {
     }
 
     @Test
-    @DisplayName("PUT /api/bookings/{id}/cancel — успешная отмена бронирования")
+    @DisplayName("PUT /api/bookings/{id}/cancel — success")
     void cancelBooking_success() throws Exception {
         var dto = new BookingDTO();
         dto.setId(6L);
@@ -191,31 +194,33 @@ public class BookingControllerTest {
     }
 
     @Test
-    @DisplayName("PUT /api/bookings/{id}/cancel — бронирование не найдено")
+    @DisplayName("PUT /api/bookings/{id}/cancel — not found → 404 NOT_FOUND")
     void cancelBooking_notFound() throws Exception {
         doThrow(new BookingNotFoundException(ErrorMessage.BOOKING_NOT_FOUND))
                 .when(bookingService).cancelBooking(7L);
 
         mvc.perform(put("/api/bookings/7/cancel"))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error").value("BOOKING_NOT_FOUND"))
-                .andExpect(jsonPath("$.message").value(ErrorMessage.BOOKING_NOT_FOUND));
+                .andExpect(jsonPath("$.error").value("NOT_FOUND"))
+                .andExpect(jsonPath("$.message")
+                        .value(ErrorMessage.BOOKING_NOT_FOUND));
     }
 
     @Test
-    @DisplayName("PUT /api/bookings/{id}/cancel — уже отменено")
+    @DisplayName("PUT /api/bookings/{id}/cancel — already cancelled → 400 BUSINESS_ERROR")
     void cancelBooking_alreadyCancelled() throws Exception {
         doThrow(new BookingAlreadyCancelledException(ErrorMessage.BOOKING_ALREADY_CANCELLED))
                 .when(bookingService).cancelBooking(8L);
 
         mvc.perform(put("/api/bookings/8/cancel"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("BOOKING_ALREADY_CANCELLED"))
-                .andExpect(jsonPath("$.message").value(ErrorMessage.BOOKING_ALREADY_CANCELLED));
+                .andExpect(jsonPath("$.error").value("BUSINESS_ERROR"))
+                .andExpect(jsonPath("$.message")
+                        .value(ErrorMessage.BOOKING_ALREADY_CANCELLED));
     }
 
     @Test
-    @DisplayName("PUT /api/bookings/{id} — успешное обновление бронирования")
+    @DisplayName("PUT /api/bookings/{id} — success")
     void updateBooking_success() throws Exception {
         var req = new UpdateBookingRequest();
         req.setTimeSlotId(30L);
@@ -238,7 +243,7 @@ public class BookingControllerTest {
     }
 
     @Test
-    @DisplayName("PUT /api/bookings/{id} — бронирование не найдено при обновлении")
+    @DisplayName("PUT /api/bookings/{id} — not found → 404 NOT_FOUND")
     void updateBooking_notFound() throws Exception {
         var req = new UpdateBookingRequest();
         req.setTimeSlotId(30L);
@@ -251,12 +256,14 @@ public class BookingControllerTest {
                         .contentType(APPLICATION_JSON)
                         .content(mapper.writeValueAsString(req)))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error").value("BOOKING_NOT_FOUND"))
-                .andExpect(jsonPath("$.message").value(ErrorMessage.BOOKING_NOT_FOUND));
+                .andExpect(jsonPath("$.error").value("NOT_FOUND"))
+                .andExpect(jsonPath("$.message")
+                        .value(ErrorMessage.BOOKING_NOT_FOUND));
     }
 
+
     @Test
-    @DisplayName("GET /api/bookings/search — успешный поиск бронирований")
+    @DisplayName("GET /api/bookings/search — successful search for bookings")
     void searchBookings_success() throws Exception {
         var dto = new BookingDTO(); dto.setId(11L);
         when(bookingService.searchBookings(
@@ -276,7 +283,7 @@ public class BookingControllerTest {
     }
 
     @Test
-    @DisplayName("GET /api/bookings/me/upcoming — успешная выдача предстоящих бронирований")
+    @DisplayName("GET /api/bookings/me/upcoming — successful issuance of upcoming bookings")
     void getMyUpcoming_success() throws Exception {
         var dto = new BookingDTO(); dto.setId(12L);
         when(bookingService.getMyUpcoming()).thenReturn(List.of(dto));
@@ -288,7 +295,7 @@ public class BookingControllerTest {
     }
 
     @Test
-    @DisplayName("GET /api/bookings/me/history — успешная выдача истории бронирований")
+    @DisplayName("GET /api/bookings/me/history — successful issuance of booking history")
     void getMyHistory_success() throws Exception {
         var dto = new BookingDTO(); dto.setId(13L);
         when(bookingService.getMyHistory()).thenReturn(List.of(dto));

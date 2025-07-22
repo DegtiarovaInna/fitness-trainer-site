@@ -13,7 +13,7 @@ public interface BookingService {
     List<BookingDTO> getAllBookings();
     BookingDTO cancelBooking(Long bookingId);
     BookingDTO updateBooking(Long bookingId, UpdateBookingRequest req);
-    List<BookingDTO> getBookingsByUser(Long userId);
+   // List<BookingDTO> getBookingsByUser(Long userId);
     List<BookingDTO> searchBookings(
             Long userId, Long studioId,
             com.fitness.enums.BookingStatus status,

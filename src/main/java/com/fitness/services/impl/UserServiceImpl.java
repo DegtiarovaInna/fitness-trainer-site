@@ -1,7 +1,9 @@
 package com.fitness.services.impl;
 
 import com.fitness.config.security.JwtService;
-import com.fitness.services.interfaces.CurrentUserService;
+import com.fitness.enums.BookingStatus;
+import com.fitness.exceptions.UserHasActiveBookings;
+import com.fitness.repositories.BookingRepository;
 import com.fitness.services.interfaces.EmailService;
 import com.fitness.dto.ChangePasswordRequest;
 import com.fitness.dto.RegisterUserRequest;
@@ -29,11 +31,11 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
-    private final CurrentUserService currentUserService;
     private final SecurityService securityService;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final EmailService emailService;
+    private final BookingRepository bookingRepository;
 
 
     @Override
@@ -77,12 +79,25 @@ public class UserServiceImpl implements UserService {
         securityService.requireSelfOrAdminOrDev(id);
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException(ErrorMessage.USER_NOT_FOUND));
+        boolean changed = false;
 
-        user.setName(dto.getName());
-        user.setEmail(dto.getEmail());
-        user.setPhoneNumber(dto.getPhoneNumber());
+        if (!user.getName().equals(dto.getName())) {
+            user.setName(dto.getName());
+            changed = true;
+        }
+        if (!user.getEmail().equals(dto.getEmail())) {
+            user.setEmail(dto.getEmail());
+            changed = true;
+        }
+        if (!user.getPhoneNumber().equals(dto.getPhoneNumber())) {
+            user.setPhoneNumber(dto.getPhoneNumber());
+            changed = true;
+        }
 
         User saved = userRepository.save(user);
+        if (changed) {
+            emailService.sendProfileUpdateEmail(saved.getEmail());
+        }
         return userMapper.userToUserDTO(saved);
     }
     @Override
@@ -103,13 +118,23 @@ public class UserServiceImpl implements UserService {
 
         u.setPassword(passwordEncoder.encode(req.getNewPassword()));
         userRepository.save(u);
+        emailService.sendPasswordChangedEmail(u.getEmail());
     }
     @Override
     public void deleteUser(Long id) {
         securityService.requireSelfOrAdminOrDev(id);
+
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException(ErrorMessage.USER_NOT_FOUND));
+
+        boolean hasActive = bookingRepository.existsByUserIdAndStatusNot(
+                user.getId(), BookingStatus.CANCELLED);
+        if (hasActive) {
+            throw new UserHasActiveBookings(ErrorMessage.USER_HAS_ACTIVE_BOOKINGS);
+        }
+
         userRepository.delete(user);
+        emailService.sendGoodbyeEmail(user.getEmail());
     }
     }
 

@@ -51,6 +51,7 @@ public class User {
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
+
     @Builder.Default
     @Column(nullable = false)
     private boolean enabled = false;

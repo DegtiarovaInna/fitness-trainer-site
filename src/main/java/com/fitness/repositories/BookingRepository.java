@@ -47,4 +47,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 boolean existsByUserIdAndTimeSlot_TrialTrueAndTimeSlot_DateAfter(Long userId, LocalDate date);
     boolean existsByTimeSlotIdAndStatusNot(Long timeSlotId, BookingStatus status);
     List<Booking> findByTimeSlot_DateAndStatusNot(LocalDate date, BookingStatus status);
+
+    List<Booking> findByTimeSlot_DateAndStatus(LocalDate date, BookingStatus status);
+    boolean existsByUserIdAndStatusNot(Long userId, BookingStatus status);
 }

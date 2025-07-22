@@ -45,7 +45,7 @@ public class TimeSlotControllerTest {
     private UserDetailsServiceImpl userDetailsService;
 
     @Test
-    @DisplayName("POST /api/timeslots — успешное создание слота")
+    @DisplayName("POST /api/timeslots — successful slot creation")
     void createTimeSlot_success() throws Exception {
         var req = new TimeSlotCreateDTO(
                 LocalDate.parse("2025-07-15"),
@@ -80,7 +80,7 @@ public class TimeSlotControllerTest {
     }
 
     @Test
-    @DisplayName("GET /api/timeslots/{id} — успешное получение слота")
+    @DisplayName("GET /api/timeslots/{id} — successful get of slot")
     void getTimeSlot_success() throws Exception {
         var dto = new TimeSlotDTO(
                 2L,
@@ -101,19 +101,19 @@ public class TimeSlotControllerTest {
     }
 
     @Test
-    @DisplayName("GET /api/timeslots/{id} — слот не найден")
+    @DisplayName("GET /api/timeslots/{id} — slot not found")
     void getTimeSlot_notFound() throws Exception {
         when(timeSlotService.getTimeSlot(99L))
                 .thenThrow(new TimeSlotNotFoundException(ErrorMessage.TIME_SLOT_NOT_FOUND));
 
         mvc.perform(get("/api/timeslots/99"))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error").value("TIME_SLOT_NOT_FOUND"))
+                .andExpect(jsonPath("$.error").value("NOT_FOUND"))
                 .andExpect(jsonPath("$.message").value(ErrorMessage.TIME_SLOT_NOT_FOUND));
     }
 
     @Test
-    @DisplayName("GET /api/timeslots — успешное получение всех слотов")
+    @DisplayName("GET /api/timeslots — successful get of all slots")
     void getAllTimeSlots_success() throws Exception {
         var dto1 = new TimeSlotDTO(3L, LocalDate.now(), LocalTime.NOON, LocalTime.NOON.plusHours(1), true, 3L, false);
         var dto2 = new TimeSlotDTO(4L, LocalDate.now(), LocalTime.NOON, LocalTime.NOON.plusHours(1), false, 3L, false);
@@ -128,7 +128,7 @@ public class TimeSlotControllerTest {
     }
 
     @Test
-    @DisplayName("PUT /api/timeslots/{id} — успешное обновление слота")
+    @DisplayName("PUT /api/timeslots/{id} —successful slot update")
     void updateTimeSlot_success() throws Exception {
         var req = new TimeSlotUpdateDTO(
                 LocalDate.parse("2025-07-20"),
@@ -156,7 +156,7 @@ public class TimeSlotControllerTest {
     }
 
     @Test
-    @DisplayName("PUT /api/timeslots/{id} — слот не найден при обновлении")
+    @DisplayName("PUT /api/timeslots/{id} — slot not found during update")
     void updateTimeSlot_notFound() throws Exception {
         var req = new TimeSlotUpdateDTO(
                 LocalDate.parse("2025-07-21"),
@@ -171,12 +171,12 @@ public class TimeSlotControllerTest {
                         .contentType(APPLICATION_JSON)
                         .content(mapper.writeValueAsString(req)))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error").value("TIME_SLOT_NOT_FOUND"))
+                .andExpect(jsonPath("$.error").value("NOT_FOUND"))
                 .andExpect(jsonPath("$.message").value(ErrorMessage.TIME_SLOT_NOT_FOUND));
     }
 
     @Test
-    @DisplayName("DELETE /api/timeslots/{id} — успешное удаление слота")
+    @DisplayName("DELETE /api/timeslots/{id} — successful slot delete")
     void deleteTimeSlot_success() throws Exception {
         doNothing().when(timeSlotService).deleteTimeSlot(7L);
 
@@ -185,19 +185,19 @@ public class TimeSlotControllerTest {
     }
 
     @Test
-    @DisplayName("DELETE /api/timeslots/{id} — слот не найден при удалении")
+    @DisplayName("DELETE /api/timeslots/{id} — slot not found when deleting")
     void deleteTimeSlot_notFound() throws Exception {
         doThrow(new TimeSlotNotFoundException(ErrorMessage.TIME_SLOT_NOT_FOUND))
                 .when(timeSlotService).deleteTimeSlot(8L);
 
         mvc.perform(delete("/api/timeslots/8"))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error").value("TIME_SLOT_NOT_FOUND"))
+                .andExpect(jsonPath("$.error").value("NOT_FOUND"))
                 .andExpect(jsonPath("$.message").value(ErrorMessage.TIME_SLOT_NOT_FOUND));
     }
 
     @Test
-    @DisplayName("GET /api/timeslots/studio/{studioId} — успешное получение слотов по студии")
+    @DisplayName("GET /api/timeslots/studio/{studioId} — successful receipt of slots by studio")
     void getTimeSlotsByStudio_success() throws Exception {
         var dto = new TimeSlotDTO(9L, LocalDate.now(), LocalTime.NOON, LocalTime.NOON.plusHours(1), true, 10L, false);
 
@@ -210,7 +210,7 @@ public class TimeSlotControllerTest {
     }
 
     @Test
-    @DisplayName("GET /api/timeslots/studio/{studioId}/available — успешное получение доступных слотов")
+    @DisplayName("GET /api/timeslots/studio/{studioId}/available — successful get of available slots")
     void getAvailableSlots_success() throws Exception {
         var dto = new TimeSlotDTO(11L, LocalDate.parse("2025-07-01"), LocalTime.parse("08:00"), LocalTime.parse("09:00"), true, 12L, false);
 
@@ -228,7 +228,7 @@ public class TimeSlotControllerTest {
     }
 
     @Test
-    @DisplayName("GET /api/timeslots/studio/{studioId}/dates — успешное получение слотов по диапазону дат")
+    @DisplayName("GET /api/timeslots/studio/{studioId}/dates — successful get of slots by date range")
     void getTimeSlotsByStudioAndDateRange_success() throws Exception {
         var dto = new TimeSlotDTO(13L, LocalDate.parse("2025-07-05"), LocalTime.parse("10:00"), LocalTime.parse("11:00"), false, 14L, false);
 

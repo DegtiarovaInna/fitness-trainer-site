@@ -31,8 +31,8 @@ public class TimeSlot {
     private Studio studio;
 
 
-@OneToMany(mappedBy = "timeSlot", cascade = CascadeType.ALL)
-private List<Booking> bookings;
+    @OneToMany(mappedBy = "timeSlot", cascade = CascadeType.ALL)
+    private List<Booking> bookings;
     private boolean trial;
 
     public Studio getStudio() {

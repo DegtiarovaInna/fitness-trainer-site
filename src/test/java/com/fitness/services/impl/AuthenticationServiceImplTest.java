@@ -31,7 +31,10 @@ public class AuthenticationServiceImplTest {
         jwtService        = mock(JwtService.class);
         refreshTokenRepo  = mock(RefreshTokenRepository.class);
         userRepository    = mock(UserRepository.class);
-        service = new AuthenticationServiceImpl(authManager, jwtService, refreshTokenRepo, userRepository);
+        service = new AuthenticationServiceImpl(authManager,
+                jwtService,
+                refreshTokenRepo,
+                userRepository);
     }
 
 

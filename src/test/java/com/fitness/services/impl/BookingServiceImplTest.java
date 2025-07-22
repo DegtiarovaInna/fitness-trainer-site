@@ -1,4 +1,5 @@
 package com.fitness.services.impl;
+
 import com.fitness.dto.BookingDTO;
 import com.fitness.dto.CreateBookingRequest;
 import com.fitness.dto.UpdateBookingRequest;
@@ -13,9 +14,11 @@ import com.fitness.repositories.BookingRepository;
 import com.fitness.repositories.TimeSlotRepository;
 import com.fitness.repositories.UserRepository;
 import com.fitness.services.interfaces.CurrentUserService;
+import com.fitness.services.interfaces.EmailService;
 import com.fitness.services.interfaces.SecurityService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import com.fitness.enums.Role;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -25,6 +28,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+
 public class BookingServiceImplTest {
     private BookingRepository bookingRepo;
     private UserRepository userRepo;
@@ -33,23 +37,27 @@ public class BookingServiceImplTest {
     private CurrentUserService currentUserService;
     private SecurityService securityService;
     private BookingServiceImpl service;
+    private EmailService emailService;
 
     @BeforeEach
     void setUp() {
-        bookingRepo         = mock(BookingRepository.class);
-        userRepo            = mock(UserRepository.class);
-        slotRepo            = mock(TimeSlotRepository.class);
-        mapper              = mock(BookingMapper.class);
-        currentUserService  = mock(CurrentUserService.class);
-        securityService     = mock(SecurityService.class);
+        bookingRepo = mock(BookingRepository.class);
+        userRepo = mock(UserRepository.class);
+        slotRepo = mock(TimeSlotRepository.class);
+        mapper = mock(BookingMapper.class);
+        currentUserService = mock(CurrentUserService.class);
+        securityService = mock(SecurityService.class);
+        emailService = mock(EmailService.class);
         doNothing().when(securityService).requireAdminOrDev();
+        when(currentUserService.getCurrentUserRole()).thenReturn(Role.ADMIN);
         service = new BookingServiceImpl(
                 bookingRepo,
                 userRepo,
                 slotRepo,
                 mapper,
                 currentUserService,
-                securityService
+                securityService,
+                emailService
         );
     }
 
@@ -97,7 +105,8 @@ public class BookingServiceImplTest {
     @Test
     void createBooking_userNotFound() {
         CreateBookingRequest req = new CreateBookingRequest();
-        req.setUserId(1L); req.setTimeSlotId(2L);
+        req.setUserId(1L);
+        req.setTimeSlotId(2L);
 
         when(userRepo.findById(1L)).thenReturn(Optional.empty());
 
@@ -108,7 +117,8 @@ public class BookingServiceImplTest {
     @Test
     void createBooking_slotNotFound() {
         CreateBookingRequest req = new CreateBookingRequest();
-        req.setUserId(1L); req.setTimeSlotId(2L);
+        req.setUserId(1L);
+        req.setTimeSlotId(2L);
 
         when(userRepo.findById(1L)).thenReturn(Optional.of(new User()));
         when(slotRepo.findById(2L)).thenReturn(Optional.empty());
@@ -120,7 +130,8 @@ public class BookingServiceImplTest {
     @Test
     void createBooking_slotNotAvailable() {
         CreateBookingRequest req = new CreateBookingRequest();
-        req.setUserId(1L); req.setTimeSlotId(2L);
+        req.setUserId(1L);
+        req.setTimeSlotId(2L);
 
         when(userRepo.findById(1L)).thenReturn(Optional.of(new User()));
 
@@ -138,9 +149,11 @@ public class BookingServiceImplTest {
     @Test
     void createBooking_trialExceeded() {
         CreateBookingRequest req = new CreateBookingRequest();
-        req.setUserId(1L); req.setTimeSlotId(2L);
+        req.setUserId(1L);
+        req.setTimeSlotId(2L);
 
-        User user = new User(); user.setId(1L);
+        User user = new User();
+        user.setId(1L);
         when(userRepo.findById(1L)).thenReturn(Optional.of(user));
 
         TimeSlot slot = new TimeSlot();
@@ -166,18 +179,21 @@ public class BookingServiceImplTest {
     @Test
     void createBooking_trainerNotAvailable_sameStudio() {
         CreateBookingRequest req = new CreateBookingRequest();
-        req.setUserId(1L); req.setTimeSlotId(3L);
+        req.setUserId(1L);
+        req.setTimeSlotId(3L);
 
-        User user = new User(); user.setId(1L);
+        User user = new User();
+        user.setId(1L);
         when(userRepo.findById(1L)).thenReturn(Optional.of(user));
 
         TimeSlot slot = new TimeSlot();
         slot.setId(3L);
         slot.setDate(LocalDate.now());
-        slot.setStartTime(LocalTime.of(10,0));
-        slot.setEndTime(LocalTime.of(11,0));
+        slot.setStartTime(LocalTime.of(10, 0));
+        slot.setEndTime(LocalTime.of(11, 0));
         slot.setTrial(false);
-        Studio st = new Studio(); st.setId(88L);
+        Studio st = new Studio();
+        st.setId(88L);
         slot.setStudio(st);
         when(slotRepo.findById(3L)).thenReturn(Optional.of(slot));
 
@@ -188,8 +204,8 @@ public class BookingServiceImplTest {
         TimeSlot ex = new TimeSlot();
         ex.setStudio(st);
         ex.setDate(slot.getDate());
-        ex.setStartTime(LocalTime.of(10,30));
-        ex.setEndTime(LocalTime.of(11,30));
+        ex.setStartTime(LocalTime.of(10, 30));
+        ex.setEndTime(LocalTime.of(11, 30));
         b.setTimeSlot(ex);
 
         when(bookingRepo.findByTimeSlot_DateAndStatusNot(slot.getDate(), BookingStatus.CANCELLED))
@@ -202,16 +218,18 @@ public class BookingServiceImplTest {
     @Test
     void createBooking_successful() {
         CreateBookingRequest req = new CreateBookingRequest();
-        req.setUserId(2L); req.setTimeSlotId(4L);
+        req.setUserId(2L);
+        req.setTimeSlotId(4L);
 
-        User user = new User(); user.setId(2L);
+        User user = new User();
+        user.setId(2L);
         when(userRepo.findById(2L)).thenReturn(Optional.of(user));
 
         TimeSlot slot = new TimeSlot();
         slot.setId(4L);
         slot.setDate(LocalDate.now());
-        slot.setStartTime(LocalTime.of(12,0));
-        slot.setEndTime(LocalTime.of(13,0));
+        slot.setStartTime(LocalTime.of(12, 0));
+        slot.setEndTime(LocalTime.of(13, 0));
         slot.setTrial(false);
         slot.setStudio(new Studio());
         when(slotRepo.findById(4L)).thenReturn(Optional.of(slot));
@@ -246,10 +264,13 @@ public class BookingServiceImplTest {
 
     @Test
     void getBooking_exists() {
-        Booking b = new Booking(); b.setId(11L);
+        Booking b = new Booking();
+        b.setId(11L);
         when(bookingRepo.findById(11L)).thenReturn(Optional.of(b));
+        when(currentUserService.getCurrentUserRole()).thenReturn(Role.ADMIN);
 
-        BookingDTO dto = new BookingDTO(); dto.setId(11L);
+        BookingDTO dto = new BookingDTO();
+        dto.setId(11L);
         when(mapper.bookingToBookingDTO(b)).thenReturn(dto);
 
         assertSame(dto, service.getBooking(11L));
@@ -258,12 +279,16 @@ public class BookingServiceImplTest {
     // getAllBookings
     @Test
     void getAllBookings_maps() {
-        Booking b1 = new Booking(); b1.setId(1L);
-        Booking b2 = new Booking(); b2.setId(2L);
+        Booking b1 = new Booking();
+        b1.setId(1L);
+        Booking b2 = new Booking();
+        b2.setId(2L);
         when(bookingRepo.findAll()).thenReturn(List.of(b1, b2));
 
-        BookingDTO d1 = new BookingDTO(); d1.setId(1L);
-        BookingDTO d2 = new BookingDTO(); d2.setId(2L);
+        BookingDTO d1 = new BookingDTO();
+        d1.setId(1L);
+        BookingDTO d2 = new BookingDTO();
+        d2.setId(2L);
         when(mapper.bookingToBookingDTO(b1)).thenReturn(d1);
         when(mapper.bookingToBookingDTO(b2)).thenReturn(d2);
 
@@ -339,25 +364,12 @@ public class BookingServiceImplTest {
         assertEquals(BookingStatus.CANCELLED, b.getStatus());
     }
 
-    // getBookingsByUser
-    @Test
-    void getBookingsByUser_maps() {
-        Booking b = new Booking(); b.setId(60L);
-        when(bookingRepo.findByUserId(70L)).thenReturn(List.of(b));
-
-        BookingDTO dto = new BookingDTO(); dto.setId(60L);
-        when(mapper.bookingToBookingDTO(b)).thenReturn(dto);
-
-        var list = service.getBookingsByUser(70L);
-        assertEquals(List.of(dto), list);
-    }
-
     // searchBookings
     @Test
     void searchBookings_filters() {
         TimeSlot slot = new TimeSlot();
         slot.setId(1L);
-        slot.setDate(LocalDate.of(2025,1,1));
+        slot.setDate(LocalDate.of(2025, 1, 1));
         slot.setStudio(new Studio());
         slot.getStudio().setId(100L);
 
@@ -379,7 +391,7 @@ public class BookingServiceImplTest {
 
         var list = service.searchBookings(
                 null, 100L, BookingStatus.CONFIRMED,
-                LocalDate.of(2025,1,1), LocalDate.of(2025,1,1)
+                LocalDate.of(2025, 1, 1), LocalDate.of(2025, 1, 1)
         );
         assertEquals(1, list.size());
     }
@@ -389,10 +401,12 @@ public class BookingServiceImplTest {
     void getMyHistory_maps() {
         when(currentUserService.getCurrentUserId()).thenReturn(200L);
 
-        Booking b = new Booking(); b.setId(200L);
+        Booking b = new Booking();
+        b.setId(200L);
         when(bookingRepo.findByUserId(200L)).thenReturn(List.of(b));
 
-        BookingDTO dto = new BookingDTO(); dto.setId(200L);
+        BookingDTO dto = new BookingDTO();
+        dto.setId(200L);
         when(mapper.bookingToBookingDTO(b)).thenReturn(dto);
 
         var list = service.getMyHistory();
@@ -403,13 +417,26 @@ public class BookingServiceImplTest {
     @Test
     void getMyUpcoming_maps() {
         when(currentUserService.getCurrentUserId()).thenReturn(300L);
+        when(currentUserService.getCurrentUserRole()).thenReturn(Role.USER);
 
-        Booking b = new Booking(); b.setId(300L);
-        when(bookingRepo.findByUserIdAndStatusInAndTimeSlot_DateAfter(
-                eq(300L), anyList(), any(LocalDate.class)
-        )).thenReturn(List.of(b));
+        TimeSlot slot = new TimeSlot();
+        slot.setDate(LocalDate.now().plusDays(1));
+        slot.setStartTime(LocalTime.of(10, 0));
+        slot.setEndTime(LocalTime.of(11, 0));
+        slot.setStudio(new Studio());
 
-        BookingDTO dto = new BookingDTO(); dto.setId(300L);
+        Booking b = Booking.builder()
+                .id(300L)
+                .status(BookingStatus.CONFIRMED)
+                .user(new User())
+                .timeSlot(slot)
+                .build();
+        b.getUser().setId(300L);
+
+        when(bookingRepo.findAll()).thenReturn(List.of(b));
+
+        BookingDTO dto = new BookingDTO();
+        dto.setId(300L);
         when(mapper.bookingToBookingDTO(b)).thenReturn(dto);
 
         var list = service.getMyUpcoming();

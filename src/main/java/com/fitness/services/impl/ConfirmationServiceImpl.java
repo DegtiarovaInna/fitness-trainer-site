@@ -21,6 +21,7 @@ public class ConfirmationServiceImpl implements ConfirmationService {
     private final UserDetailsService userDetailsService;
     private final UserRepository userRepository;
     private final EmailService emailService;
+
     @Override
     @Transactional
     public void confirmToken(String token) {
@@ -43,6 +44,7 @@ public class ConfirmationServiceImpl implements ConfirmationService {
         user.setEnabled(true);
         userRepository.save(user);
     }
+
     @Override
     public void resendConfirmationEmail(String email) {
         User user = userRepository.findByEmail(email)

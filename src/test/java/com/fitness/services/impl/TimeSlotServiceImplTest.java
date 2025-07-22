@@ -8,6 +8,7 @@ import com.fitness.exceptions.TimeSlotNotFoundException;
 import com.fitness.exceptions.TimeSlotOverlapException;
 import com.fitness.models.Studio;
 import com.fitness.models.TimeSlot;
+import com.fitness.repositories.BookingRepository;
 import com.fitness.repositories.TimeSlotRepository;
 import com.fitness.repositories.StudioRepository;
 import com.fitness.mappers.TimeSlotMapper;
@@ -20,12 +21,14 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
+import com.fitness.enums.BookingStatus;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 public class TimeSlotServiceImplTest {
     private TimeSlotRepository slotRepo;
     private StudioRepository studioRepo;
+    private BookingRepository bookingRepo;
     private TimeSlotMapper mapper;
     private SecurityService securityService;
     private TimeSlotServiceImpl service;
@@ -34,11 +37,12 @@ public class TimeSlotServiceImplTest {
     void setUp() {
         slotRepo = mock(TimeSlotRepository.class);
         studioRepo = mock(StudioRepository.class);
+        bookingRepo    = mock(BookingRepository.class);
         mapper = mock(TimeSlotMapper.class);
         securityService = mock(SecurityService.class);
         doNothing().when(securityService).requireAdminOrDev();
 
-        service = new TimeSlotServiceImpl(slotRepo, studioRepo, mapper, securityService);
+        service = new TimeSlotServiceImpl(slotRepo, studioRepo, mapper, securityService, bookingRepo);
     }
 
     //createTimeSlot
@@ -191,13 +195,19 @@ public class TimeSlotServiceImplTest {
     void delete_existing_deletes() {
         var slot = new TimeSlot(); slot.setId(11L);
         when(slotRepo.findById(11L)).thenReturn(Optional.of(slot));
-        doNothing().when(slotRepo).delete(slot);
+
+        when(bookingRepo.existsByTimeSlotIdAndStatusNot(11L, BookingStatus.CANCELLED))
+                .thenReturn(false);
+
         service.deleteTimeSlot(11L);
+
         verify(securityService).requireAdminOrDev();
         verify(slotRepo).delete(slot);
+        verify(bookingRepo).existsByTimeSlotIdAndStatusNot(11L, BookingStatus.CANCELLED); // ⬅--- НОВОЕ
     }
 
     //query methods
+
 
     @Test
     void getByStudio_mapsResults() {
@@ -205,6 +215,7 @@ public class TimeSlotServiceImplTest {
         when(slotRepo.findByStudioId(5L)).thenReturn(List.of(s1));
         var dto = new TimeSlotDTO(); dto.setId(21L);
         when(mapper.timeSlotToTimeSlotDTO(s1)).thenReturn(dto);
+
         assertEquals(List.of(dto), service.getTimeSlotsByStudio(5L));
         verify(securityService).requireStudioOwnerOrAdminOrDev(5L);
     }
@@ -212,22 +223,44 @@ public class TimeSlotServiceImplTest {
     @Test
     void getByDateRange_mapsResults() {
         var s2 = new TimeSlot(); s2.setId(22L);
-        when(slotRepo.findByStudioIdAndDateBetween(6L, LocalDate.of(2025,1,1), LocalDate.of(2025,1,31)))
+        when(slotRepo.findByStudioIdAndDateBetween(
+                6L, LocalDate.of(2025,1,1), LocalDate.of(2025,1,31)))
                 .thenReturn(List.of(s2));
         var dto2 = new TimeSlotDTO(); dto2.setId(22L);
         when(mapper.timeSlotToTimeSlotDTO(s2)).thenReturn(dto2);
-        assertEquals(List.of(dto2), service.getTimeSlotsByStudioAndDateRange(6L, LocalDate.of(2025,1,1), LocalDate.of(2025,1,31)));
+
+        assertEquals(
+                List.of(dto2),
+                service.getTimeSlotsByStudioAndDateRange(
+                        6L, LocalDate.of(2025,1,1), LocalDate.of(2025,1,31)));
+
         verify(securityService).requireStudioOwnerOrAdminOrDev(6L);
     }
 
     @Test
     void getAvailable_mapsResults() {
-        var s3 = new TimeSlot(); s3.setId(23L);
-        when(slotRepo.findByStudioIdAndDateBetweenAndAvailableTrue(7L, LocalDate.of(2025,2,1), LocalDate.of(2025,2,28)))
+        var s3 = new TimeSlot();
+        s3.setId(23L);
+        s3.setDate(LocalDate.of(2025,2,5));
+        s3.setStartTime(LocalTime.of(10,0));
+        s3.setEndTime(LocalTime.of(11,0));
+
+        when(slotRepo.findByStudioIdAndDateBetweenAndAvailableTrue(
+                7L, LocalDate.of(2025,2,1), LocalDate.of(2025,2,28)))
                 .thenReturn(List.of(s3));
+
+        when(bookingRepo.findByTimeSlot_DateAndStatusNot(
+                any(), eq(BookingStatus.CANCELLED)))
+                .thenReturn(List.of());
+
         var dto3 = new TimeSlotDTO(); dto3.setId(23L);
         when(mapper.timeSlotToTimeSlotDTO(s3)).thenReturn(dto3);
-        assertEquals(List.of(dto3), service.getAvailableSlotsByStudio(7L, LocalDate.of(2025,2,1), LocalDate.of(2025,2,28)));
+
+        assertEquals(
+                List.of(dto3),
+                service.getAvailableSlotsByStudio(
+                        7L, LocalDate.of(2025,2,1), LocalDate.of(2025,2,28)));
+
         verify(securityService).requireStudioOwnerOrAdminOrDev(7L);
     }
 }
