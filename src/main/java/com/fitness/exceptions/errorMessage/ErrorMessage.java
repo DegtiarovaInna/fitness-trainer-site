@@ -26,4 +26,5 @@ public class ErrorMessage {
     public static final String TRAINER_NOT_AVAILABLE_STUDIO_SWITCH = "Trainer is not available for this time slot considering studio switch";
     public static final String EMAIL_NOT_CONFIRMED = "Email not confirmed";
     public static final String USER_HAS_ACTIVE_BOOKINGS = "USER_HAS_ACTIVE_BOOKINGS";
+    public static final String REFRESH_TOKEN_REUSED = "Refresh token reused – sessions cleared";
 }

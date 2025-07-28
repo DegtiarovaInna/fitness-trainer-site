@@ -28,4 +28,10 @@ public class RefreshToken {
     @Column(nullable = false)
     private LocalDateTime expiresAt;
 
+    @Column(nullable = false)
+    private boolean revoked = false;
+
+    @Column(nullable = false)
+    private boolean reused  = false;
+
 }

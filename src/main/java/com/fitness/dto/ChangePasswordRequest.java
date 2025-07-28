@@ -1,5 +1,6 @@
 package com.fitness.dto;
 
+import com.fitness.validation.StrongPassword;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -13,8 +14,12 @@ public class ChangePasswordRequest {
     private String currentPassword;
 
     @NotBlank
-    @Size(min=8) @Pattern(regexp="^(?=.*[A-Za-z])(?=.*\\d).*$")
-    @Schema(description="New password (minimum 8 characters, letters + numbers)")
+    @Size(min=8)
+    @StrongPassword
+    @Schema(
+            description = "Password ≥8 characters, score ≥ 3 zxcvbn",
+            example = "S3cur3!Pass"
+    )
     private String newPassword;
 
     @NotBlank

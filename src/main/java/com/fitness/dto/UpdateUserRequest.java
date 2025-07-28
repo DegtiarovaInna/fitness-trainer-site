@@ -25,4 +25,6 @@ public class UpdateUserRequest {
     @Schema(description = "Phone number (10-15 digits, may include +)", example = "+79991234567")
     private String phoneNumber;
 
+    @Schema(description = "Avatar object key in S3", example = "uuid-filename.jpg")
+    private String avatarKey;
 }

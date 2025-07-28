@@ -56,4 +56,7 @@ public class User {
     @Column(nullable = false)
     private boolean enabled = false;
 
+    @Column(name = "avatar_key")
+    private String avatarKey;
+
 }

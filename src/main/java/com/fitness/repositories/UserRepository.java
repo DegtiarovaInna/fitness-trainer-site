@@ -13,7 +13,6 @@ import java.util.Optional;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmail(String email);
- //   boolean existsByEmail(String email);
  void deleteAllByEnabledFalseAndCreatedAtBefore(LocalDateTime cutoff);
     @Query("SELECT DISTINCT b.user FROM Booking b WHERE b.timeSlot.studio.id = :studioId")
     List<User> findDistinctUsersByStudioId(@Param("studioId") Long studioId);

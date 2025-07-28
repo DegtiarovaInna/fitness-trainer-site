@@ -64,11 +64,9 @@ public class BookingServiceImplTest {
     // createBookingForCurrentUser
     @Test
     void createBookingForCurrentUser_delegates() {
-        // arrange
         User me = new User();
         me.setId(50L);
         when(currentUserService.getCurrentUser()).thenReturn(me);
-        when(userRepo.findById(50L)).thenReturn(Optional.of(me));
 
         TimeSlot slot = new TimeSlot();
         slot.setId(60L);
@@ -77,7 +75,7 @@ public class BookingServiceImplTest {
         slot.setEndTime(LocalTime.of(11, 0));
         slot.setTrial(false);
         slot.setStudio(new Studio());
-        when(slotRepo.findById(60L)).thenReturn(Optional.of(slot));
+        when(slotRepo.findByIdForUpdate(60L)).thenReturn(Optional.of(slot));
 
         when(bookingRepo.existsByTimeSlotIdAndStatusNot(60L, BookingStatus.CANCELLED))
                 .thenReturn(false);
@@ -121,7 +119,7 @@ public class BookingServiceImplTest {
         req.setTimeSlotId(2L);
 
         when(userRepo.findById(1L)).thenReturn(Optional.of(new User()));
-        when(slotRepo.findById(2L)).thenReturn(Optional.empty());
+        when(slotRepo.findByIdForUpdate(2L)).thenReturn(Optional.empty());
 
         assertThrows(TimeSlotNotFoundException.class,
                 () -> service.createBooking(req));
@@ -137,7 +135,7 @@ public class BookingServiceImplTest {
 
         TimeSlot slot = new TimeSlot();
         slot.setId(2L);
-        when(slotRepo.findById(2L)).thenReturn(Optional.of(slot));
+        when(slotRepo.findByIdForUpdate(2L)).thenReturn(Optional.of(slot));
 
         when(bookingRepo.existsByTimeSlotIdAndStatusNot(2L, BookingStatus.CANCELLED))
                 .thenReturn(true);
@@ -160,7 +158,7 @@ public class BookingServiceImplTest {
         slot.setId(2L);
         slot.setTrial(true);
         slot.setDate(LocalDate.now());
-        when(slotRepo.findById(2L)).thenReturn(Optional.of(slot));
+        when(slotRepo.findByIdForUpdate(2L)).thenReturn(Optional.of(slot));
 
         when(bookingRepo.existsByTimeSlotIdAndStatusNot(2L, BookingStatus.CANCELLED))
                 .thenReturn(false);
@@ -195,7 +193,7 @@ public class BookingServiceImplTest {
         Studio st = new Studio();
         st.setId(88L);
         slot.setStudio(st);
-        when(slotRepo.findById(3L)).thenReturn(Optional.of(slot));
+        when(slotRepo.findByIdForUpdate(3L)).thenReturn(Optional.of(slot));
 
         when(bookingRepo.existsByTimeSlotIdAndStatusNot(3L, BookingStatus.CANCELLED))
                 .thenReturn(false);
@@ -232,7 +230,7 @@ public class BookingServiceImplTest {
         slot.setEndTime(LocalTime.of(13, 0));
         slot.setTrial(false);
         slot.setStudio(new Studio());
-        when(slotRepo.findById(4L)).thenReturn(Optional.of(slot));
+        when(slotRepo.findByIdForUpdate(4L)).thenReturn(Optional.of(slot));
 
         when(bookingRepo.existsByTimeSlotIdAndStatusNot(4L, BookingStatus.CANCELLED))
                 .thenReturn(false);
