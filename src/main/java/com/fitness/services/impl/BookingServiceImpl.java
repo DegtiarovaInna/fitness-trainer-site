@@ -53,9 +53,9 @@ public class BookingServiceImpl implements BookingService {
     public BookingDTO createBookingForCurrentUser(Long timeSlotId) {
 
         User me = currentUserService.getCurrentUser();
-        TimeSlot slot = getSlotOrThrow(timeSlotId);
+       // TimeSlot slot = getSlotOrThrow(timeSlotId);
 
-        Booking created = createInternal(me, slot);
+        Booking created = createInternal(me, timeSlotId);
         return bookingMapper.bookingToBookingDTO(created);
     }
 
@@ -66,14 +66,15 @@ public class BookingServiceImpl implements BookingService {
         securityService.requireAdminOrDev();
         User user = userRepository.findById(req.getUserId())
                 .orElseThrow(() -> new UserNotFoundException(ErrorMessage.USER_NOT_FOUND));
-        TimeSlot slot = getSlotOrThrow(req.getTimeSlotId());
+       // TimeSlot slot = getSlotOrThrow(req.getTimeSlotId());
 
-        Booking created = createInternal(user, slot);
+        Booking created = createInternal(user, req.getTimeSlotId());
         return bookingMapper.bookingToBookingDTO(created);
     }
 
-    private Booking createInternal(User user, TimeSlot slot) {
-
+    private Booking createInternal(User user, Long slotId) {
+        TimeSlot slot = timeSlotRepository.findByIdForUpdate(slotId)
+                .orElseThrow(() -> new TimeSlotNotFoundException(ErrorMessage.TIME_SLOT_NOT_FOUND));
 
         if (bookingRepository.existsByTimeSlotIdAndStatusNot(
                 slot.getId(), BookingStatus.CANCELLED)) {
@@ -88,7 +89,7 @@ public class BookingServiceImpl implements BookingService {
             }
         }
 
-        checkTrainerAvailability(slot);
+       checkTrainerAvailability(slot);
 
         Booking booking = Booking.builder()
                 .user(user)

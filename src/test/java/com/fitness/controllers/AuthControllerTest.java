@@ -66,7 +66,7 @@ public class AuthControllerTest {
         req.setName("Inna");
         req.setEmail("inna@example.com");
         req.setPhoneNumber("+79161234567");
-        req.setPassword("secret123");
+        req.setPassword("B3tt3r!Pass1");
 
         var dto = new UserDTO();
         dto.setId(42L);
@@ -162,7 +162,7 @@ public class AuthControllerTest {
                         .content(mapper.writeValueAsString(req)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.password")
-                        .value("The password must contain letters and numbers"));
+                        .value("Weak password"));
     }
     @Test
     @DisplayName("POST /auth/register — email duplication → 400 EMAIL_ALREADY_EXISTS")
@@ -171,7 +171,7 @@ public class AuthControllerTest {
         req.setName("Inna");
         req.setEmail("inna@example.com");
         req.setPhoneNumber("+79161234567");
-        req.setPassword("secret1234");
+        req.setPassword("B3tt3r!Pass1");
 
         doThrow(new DataIntegrityViolationException("duplicate"))
                 .when(userService).registerUser(any());

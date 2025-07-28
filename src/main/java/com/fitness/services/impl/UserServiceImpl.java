@@ -15,6 +15,7 @@ import com.fitness.exceptions.errorMessage.ErrorMessage;
 import com.fitness.mappers.UserMapper;
 import com.fitness.models.User;
 import com.fitness.repositories.UserRepository;
+import com.fitness.services.interfaces.MediaService;
 import com.fitness.services.interfaces.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +37,7 @@ public class UserServiceImpl implements UserService {
     private final JwtService jwtService;
     private final EmailService emailService;
     private final BookingRepository bookingRepository;
+    private final MediaService mediaService;
 
 
     @Override
@@ -65,14 +67,22 @@ public class UserServiceImpl implements UserService {
         securityService.requireSelfOrAdminOrDev(id);
             User user = userRepository.findById(id)
                     .orElseThrow(() -> new UserNotFoundException(ErrorMessage.USER_NOT_FOUND));
+        UserDTO dto = userMapper.userToUserDTO(user);
+        if (user.getAvatarKey() != null) {
+            dto.setAvatarUrl(mediaService.generateDownloadUrl(user.getAvatarKey()).toString());
+        }
             return userMapper.userToUserDTO(user);
         }
     @Override
     public List<UserDTO> getAllUsers() {
         securityService.requireAdminOrDev();
-        return userRepository.findAll().stream()
-                .map(userMapper::userToUserDTO)
-                .collect(Collectors.toList());
+        return userRepository.findAll().stream().map(user -> {
+            UserDTO dto = userMapper.userToUserDTO(user);
+            if (user.getAvatarKey() != null) {
+                dto.setAvatarUrl(mediaService.generateDownloadUrl(user.getAvatarKey()).toString());
+            }
+            return dto;
+        }).collect(Collectors.toList());
     }
     @Override
     public UserDTO updateUser(Long id, UpdateUserRequest dto) {
@@ -93,12 +103,20 @@ public class UserServiceImpl implements UserService {
             user.setPhoneNumber(dto.getPhoneNumber());
             changed = true;
         }
+        if (dto.getAvatarKey() != null && !dto.getAvatarKey().equals(user.getAvatarKey())) {
+            user.setAvatarKey(dto.getAvatarKey());
+            changed = true;
+        }
 
         User saved = userRepository.save(user);
         if (changed) {
             emailService.sendProfileUpdateEmail(saved.getEmail());
         }
-        return userMapper.userToUserDTO(saved);
+        UserDTO out = userMapper.userToUserDTO(saved);
+        if (saved.getAvatarKey() != null) {
+            out.setAvatarUrl(mediaService.generateDownloadUrl(saved.getAvatarKey()).toString());
+        }
+        return out;
     }
     @Override
     @Transactional

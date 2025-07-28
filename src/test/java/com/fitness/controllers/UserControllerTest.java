@@ -173,8 +173,8 @@ public class UserControllerTest {
     void changePassword_success() throws Exception {
         var req = new ChangePasswordRequest();
         req.setCurrentPassword("old12345678");
-        req.setNewPassword("new12345678");
-        req.setNewPasswordConfirm("new12345678");
+        req.setNewPassword("B3tt3r!Pass1");
+        req.setNewPasswordConfirm("B3tt3r!Pass1");
 
         mvc.perform(put("/api/users/2/password")
                         .contentType(APPLICATION_JSON)
@@ -187,8 +187,8 @@ public class UserControllerTest {
     void changePassword_invalidCurrent() throws Exception {
         var req = new ChangePasswordRequest();
         req.setCurrentPassword("wrong1234");
-        req.setNewPassword("n12345678");
-        req.setNewPasswordConfirm("n12345678");
+        req.setNewPassword("B3tt3r!Pass1");
+        req.setNewPasswordConfirm("B3tt3r!Pass1");
 
         doThrow(new BadCredentialsException(ErrorMessage.INVALID_CURRENT_PASSWORD))
                 .when(userService).changePassword(eq(2L), any());
@@ -205,9 +205,9 @@ public class UserControllerTest {
     @DisplayName("PUT /api/users/{id}/password — new passwords do not match")
     void changePassword_mismatch() throws Exception {
         var req = new ChangePasswordRequest();
-        req.setCurrentPassword("old111222");
-        req.setNewPassword("aaaa11111");
-        req.setNewPasswordConfirm("bbbb11111");
+        req.setCurrentPassword("B3tt3r!Pass1");
+        req.setNewPassword("C3tt3r!Dass1");
+        req.setNewPasswordConfirm("F3tt3r!Fass1");
 
         doThrow(new IllegalArgumentException(ErrorMessage.PASSWORDS_DO_NOT_MATCH))
                 .when(userService).changePassword(eq(2L), any());

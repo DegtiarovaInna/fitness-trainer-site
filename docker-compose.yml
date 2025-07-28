@@ -13,21 +13,44 @@ services:
       interval: 10s
       retries: 5
 
+  minio:
+    image: minio/minio:latest
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio-data:/data
+
   app:
     build: .
     depends_on:
-      db: { condition: service_healthy }
+      db:
+        condition: service_healthy
+      minio:
+          condition: service_started
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/fitness_db
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
-      SPRING_PROFILES_ACTIVE: prod       # или dev, если нужны демо-данные
+      SPRING_PROFILES_ACTIVE: prod
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION: ${JWT_EXPIRATION}
       JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION}
+      JWT_RESET_EXPIRATION: ${JWT_RESET_EXPIRATION}
       SENDGRID_API_KEY: ${SENDGRID_API_KEY}
       MAIL_FROM: ${MAIL_FROM}
+      MEDIA_BUCKET: ${MEDIA_BUCKET}
+      MEDIA_REGION: ${MEDIA_REGION}
+      MEDIA_ENDPOINT: ${MEDIA_ENDPOINT}
+      MEDIA_ACCESS_KEY: ${MEDIA_ACCESS_KEY}
+      MEDIA_SECRET_KEY: ${MEDIA_SECRET_KEY}
+      MEDIA_PRESIGN_DURATION: ${MEDIA_PRESIGN_DURATION}
     ports: [ "8080:8080" ]
 
 volumes:
   db-data:
+  minio-data:

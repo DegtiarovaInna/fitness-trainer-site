@@ -3,6 +3,7 @@ package com.fitness.services.impl;
 import com.fitness.config.security.JwtService;
 import com.fitness.dto.AuthResponse;
 import com.fitness.exceptions.EmailNotConfirmedException;
+import com.fitness.exceptions.RefreshTokenException;
 import com.fitness.exceptions.errorMessage.ErrorMessage;
 import com.fitness.models.RefreshToken;
 import com.fitness.models.User;
@@ -32,39 +33,60 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     public AuthResponse login(String email, String password) {
         authManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
         User user = userRepository.findByEmail(email)
-                               .orElseThrow(() -> new BadCredentialsException("Invalid credentials"));
-               if (!user.isEnabled()) {
-                       throw new EmailNotConfirmedException(ErrorMessage.EMAIL_NOT_CONFIRMED);
+                .orElseThrow(() -> new BadCredentialsException("Invalid credentials"));
+        if (!user.isEnabled()) {
+            throw new EmailNotConfirmedException(ErrorMessage.EMAIL_NOT_CONFIRMED);
         }
-        String accessToken  = jwtService.generateToken(email);
+
+        refreshTokenRepo.revokeAllActive(email);
+        String accessToken = jwtService.generateToken(email);
         String refreshToken = jwtService.generateRefreshToken(email);
 
-        refreshTokenRepo.deleteByUsername(email);
-        RefreshToken rt = new RefreshToken();
-        rt.setUsername(email);
-        rt.setToken(refreshToken);
-        rt.setExpiresAt(
-                LocalDateTime.now()
-                        .plus(Duration.ofMillis(jwtService.getRefreshExpiration()))
-        );
-        refreshTokenRepo.save(rt);
+        refreshTokenRepo.save(RefreshToken.builder()
+                .username(email)
+                .token(refreshToken)
+                .expiresAt(LocalDateTime.now()
+                        .plus(Duration.ofMillis(jwtService.getRefreshExpiration())))
+                .build());
 
         return new AuthResponse(accessToken, refreshToken);
     }
 
     @Override
+    @Transactional
     public AuthResponse refresh(String refreshToken) {
         if (!jwtService.isRefreshToken(refreshToken)) {
-            throw new BadCredentialsException(ErrorMessage.INVALID_REFRESH);
+            throw new RefreshTokenException(ErrorMessage.INVALID_REFRESH);
         }
         RefreshToken rt = refreshTokenRepo.findByToken(refreshToken)
-                .orElseThrow(() -> new BadCredentialsException(ErrorMessage.INVALID_REFRESH));
+                .orElseThrow(() -> new  RefreshTokenException(ErrorMessage.INVALID_REFRESH));
+
         if (rt.getExpiresAt().isBefore(LocalDateTime.now())) {
             refreshTokenRepo.delete(rt);
-            throw new BadCredentialsException(ErrorMessage.INVALID_REFRESH);
+            throw new  RefreshTokenException(ErrorMessage.INVALID_REFRESH);
         }
 
-        String newAccessToken = jwtService.generateToken(rt.getUsername());
-        return new AuthResponse(newAccessToken, refreshToken);
+        if (rt.isRevoked()) {
+            rt.setReused(true);
+            refreshTokenRepo.save(rt);
+            refreshTokenRepo.revokeAllActive(rt.getUsername());
+            throw new RefreshTokenException(ErrorMessage.REFRESH_TOKEN_REUSED);
+        }
+
+        rt.setRevoked(true);
+        refreshTokenRepo.save(rt);
+
+        String username = rt.getUsername();
+        String newAccessToken = jwtService.generateToken(username);
+        String newRefreshToken = jwtService.generateRefreshToken(username);
+
+        refreshTokenRepo.save(RefreshToken.builder()
+                .username(username)
+                .token(newRefreshToken)
+                .expiresAt(LocalDateTime.now()
+                        .plus(Duration.ofMillis(jwtService.getRefreshExpiration())))
+                .build());
+
+        return new AuthResponse(newAccessToken, newRefreshToken);
     }
 }

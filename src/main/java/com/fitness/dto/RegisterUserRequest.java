@@ -1,5 +1,6 @@
 package com.fitness.dto;
 
+import com.fitness.validation.StrongPassword;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -18,11 +19,11 @@ public class RegisterUserRequest {
     private String email;
     @NotBlank(message = "Password is required")
     @Size(min = 8, message = "Password must be at least 8 characters long")
-    @Pattern(
-            regexp = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d@#$%^&+=!]*$",
-            message = "The password must contain letters and numbers"
+    @StrongPassword
+    @Schema(
+            description = "Password ≥8 characters, score ≥ 3 zxcvbn",
+            example = "S3cur3!Pass"
     )
-    @Schema(description = "Password (minimum 8 characters, letters and numbers)", example = "password123")
     private String password;
     @NotBlank(message = "Phone is required")
     @Pattern(

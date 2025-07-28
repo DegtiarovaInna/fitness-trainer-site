@@ -9,9 +9,11 @@ import com.fitness.enums.Role;
 import com.fitness.exceptions.UserNotFoundException;
 import com.fitness.mappers.UserMapper;
 import com.fitness.models.User;
+import com.fitness.repositories.TimeSlotRepository;
 import com.fitness.repositories.UserRepository;
 import com.fitness.repositories.BookingRepository;
 import com.fitness.services.interfaces.EmailService;
+import com.fitness.services.interfaces.MediaService;
 import com.fitness.services.interfaces.SecurityService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,6 +34,7 @@ public class UserServiceImplTest {
     private EmailService emailService;
     private UserServiceImpl service;
     private BookingRepository bookingRepository;
+    private MediaService mediaService;
 
 
     @BeforeEach
@@ -43,6 +46,7 @@ public class UserServiceImplTest {
         jwtService = mock(JwtService.class);
         emailService = mock(EmailService.class);
         bookingRepository = mock(BookingRepository.class);
+        mediaService = mock(MediaService.class);
         service = new UserServiceImpl(
                 userRepo,
                 userMapper,
@@ -50,7 +54,8 @@ public class UserServiceImplTest {
                 passwordEncoder,
                 jwtService,
                 emailService,
-                bookingRepository
+                bookingRepository,
+                mediaService
         );
     }
 

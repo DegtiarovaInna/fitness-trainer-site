@@ -15,5 +15,7 @@ public class UserDTO {
     private String phoneNumber;
     private Role role;
 
+    private String avatarUrl;
+
 
 }
