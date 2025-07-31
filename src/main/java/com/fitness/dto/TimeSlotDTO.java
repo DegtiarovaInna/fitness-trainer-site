@@ -30,6 +30,8 @@ public class TimeSlotDTO {
     private Long studioId;
     @Schema(description = "Is the slot a trial (30 minutes)", example = "false")
     private boolean trial;
+    @Schema(description = "Price of training in cents", example = "5000")
+    @NotNull private Long priceCents;
 
     public Long getStudioId() {
         return studioId;

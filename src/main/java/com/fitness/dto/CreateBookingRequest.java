@@ -12,4 +12,6 @@ public class CreateBookingRequest {
     @NotNull(message = "Timeslot ID is required")
     @Schema(description = "ID of the selected timeslot", example = "10")
     private Long timeSlotId;
+
+    private String promoCode;
 }

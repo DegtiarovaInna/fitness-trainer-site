@@ -1,4 +1,5 @@
 package com.fitness.controllers;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fitness.dto.TimeSlotCreateDTO;
 import com.fitness.dto.TimeSlotDTO;
@@ -51,7 +52,8 @@ public class TimeSlotControllerTest {
                 LocalDate.parse("2025-07-15"),
                 LocalTime.parse("09:00"),
                 LocalTime.parse("10:00"),
-                1L
+                1L,
+                5000L
         );
 
         var dto = new TimeSlotDTO(
@@ -61,7 +63,8 @@ public class TimeSlotControllerTest {
                 LocalTime.parse("10:00"),
                 true,
                 1L,
-                false
+                false,
+                5000L
         );
 
         when(timeSlotService.createTimeSlot(req)).thenReturn(dto);
@@ -76,7 +79,8 @@ public class TimeSlotControllerTest {
                 .andExpect(jsonPath("$.startTime").value("09:00:00"))
                 .andExpect(jsonPath("$.endTime").value("10:00:00"))
                 .andExpect(jsonPath("$.available").value(true))
-                .andExpect(jsonPath("$.trial").value(false));
+                .andExpect(jsonPath("$.trial").value(false))
+                .andExpect(jsonPath("$.priceCents").value(5000));
     }
 
     @Test
@@ -89,7 +93,8 @@ public class TimeSlotControllerTest {
                 LocalTime.parse("12:00"),
                 true,
                 2L,
-                true
+                true,
+                6000L
         );
 
         when(timeSlotService.getTimeSlot(2L)).thenReturn(dto);
@@ -97,7 +102,8 @@ public class TimeSlotControllerTest {
         mvc.perform(get("/api/timeslots/2"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(2))
-                .andExpect(jsonPath("$.trial").value(true));
+                .andExpect(jsonPath("$.trial").value(true))
+                .andExpect(jsonPath("$.priceCents").value(6000));
     }
 
     @Test
@@ -115,8 +121,8 @@ public class TimeSlotControllerTest {
     @Test
     @DisplayName("GET /api/timeslots — successful get of all slots")
     void getAllTimeSlots_success() throws Exception {
-        var dto1 = new TimeSlotDTO(3L, LocalDate.now(), LocalTime.NOON, LocalTime.NOON.plusHours(1), true, 3L, false);
-        var dto2 = new TimeSlotDTO(4L, LocalDate.now(), LocalTime.NOON, LocalTime.NOON.plusHours(1), false, 3L, false);
+        var dto1 = new TimeSlotDTO(3L, LocalDate.now(), LocalTime.NOON, LocalTime.NOON.plusHours(1), true, 3L, false, 1000L);
+        var dto2 = new TimeSlotDTO(4L, LocalDate.now(), LocalTime.NOON, LocalTime.NOON.plusHours(1), false, 3L, false, 1000L);
 
         when(timeSlotService.getAllTimeSlots()).thenReturn(List.of(dto1, dto2));
 
@@ -133,7 +139,8 @@ public class TimeSlotControllerTest {
         var req = new TimeSlotUpdateDTO(
                 LocalDate.parse("2025-07-20"),
                 LocalTime.parse("14:00"),
-                LocalTime.parse("15:00")
+                LocalTime.parse("15:00"),
+                7000L
         );
         var dto = new TimeSlotDTO(
                 5L,
@@ -142,7 +149,8 @@ public class TimeSlotControllerTest {
                 LocalTime.parse("15:00"),
                 true,
                 4L,
-                false
+                false,
+                7000L
         );
 
         when(timeSlotService.updateTimeSlot(5L, req)).thenReturn(dto);
@@ -152,7 +160,8 @@ public class TimeSlotControllerTest {
                         .content(mapper.writeValueAsString(req)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(5))
-                .andExpect(jsonPath("$.date").value("2025-07-20"));
+                .andExpect(jsonPath("$.date").value("2025-07-20"))
+                .andExpect(jsonPath("$.priceCents").value(7000));
     }
 
     @Test
@@ -161,7 +170,8 @@ public class TimeSlotControllerTest {
         var req = new TimeSlotUpdateDTO(
                 LocalDate.parse("2025-07-21"),
                 LocalTime.parse("16:00"),
-                LocalTime.parse("17:00")
+                LocalTime.parse("17:00"),
+                7000L
         );
 
         doThrow(new TimeSlotNotFoundException(ErrorMessage.TIME_SLOT_NOT_FOUND))
@@ -199,7 +209,7 @@ public class TimeSlotControllerTest {
     @Test
     @DisplayName("GET /api/timeslots/studio/{studioId} — successful receipt of slots by studio")
     void getTimeSlotsByStudio_success() throws Exception {
-        var dto = new TimeSlotDTO(9L, LocalDate.now(), LocalTime.NOON, LocalTime.NOON.plusHours(1), true, 10L, false);
+        var dto = new TimeSlotDTO(9L, LocalDate.now(), LocalTime.NOON, LocalTime.NOON.plusHours(1), true, 10L, false, 3000L);
 
         when(timeSlotService.getTimeSlotsByStudio(10L)).thenReturn(List.of(dto));
 
@@ -212,7 +222,7 @@ public class TimeSlotControllerTest {
     @Test
     @DisplayName("GET /api/timeslots/studio/{studioId}/available — successful get of available slots")
     void getAvailableSlots_success() throws Exception {
-        var dto = new TimeSlotDTO(11L, LocalDate.parse("2025-07-01"), LocalTime.parse("08:00"), LocalTime.parse("09:00"), true, 12L, false);
+        var dto = new TimeSlotDTO(11L, LocalDate.parse("2025-07-01"), LocalTime.parse("08:00"), LocalTime.parse("09:00"), true, 12L, false, 3000L);
 
         when(timeSlotService.getAvailableSlotsByStudio(
                 eq(12L),
@@ -230,7 +240,7 @@ public class TimeSlotControllerTest {
     @Test
     @DisplayName("GET /api/timeslots/studio/{studioId}/dates — successful get of slots by date range")
     void getTimeSlotsByStudioAndDateRange_success() throws Exception {
-        var dto = new TimeSlotDTO(13L, LocalDate.parse("2025-07-05"), LocalTime.parse("10:00"), LocalTime.parse("11:00"), false, 14L, false);
+        var dto = new TimeSlotDTO(13L, LocalDate.parse("2025-07-05"), LocalTime.parse("10:00"), LocalTime.parse("11:00"), false, 14L, false, 3000L);
 
         when(timeSlotService.getTimeSlotsByStudioAndDateRange(
                 eq(14L),

@@ -24,4 +24,7 @@ public class TimeSlotUpdateDTO {
     @NotNull(message = "End time is required")
     @Schema(description = "End time in format HH:mm", example = "14:30")
     private LocalTime endTime;
+
+    @Schema(description = "Price of training in cents", example = "5000")
+    @NotNull private Long priceCents;
 }

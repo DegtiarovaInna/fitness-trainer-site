@@ -11,6 +11,8 @@ Full-featured backend for a personal fitness trainer's studio booking system.
 - ✅ Manage Studios: CRUD + Analytics
 - ✅ Time Slot Management: conflict detection, buffer between studios
 - ✅ Booking System: create/cancel/update, upcoming/history view
+- ✅ Card Payments via Stripe + promo‑codes
+- ✅ Media upload/download via S3 presigned URLs
 - ✅ One trial session per user per year
 - ✅ Swagger UI for API documentation
 - ✅ PostgreSQL support with JPA/Hibernate
@@ -31,18 +33,20 @@ Swagger UI available at:
 
 ## 🧰 Tech Stack
 
-| Layer            | Technology                     |
-|------------------|--------------------------------|
-| Language         | Java 17+                       |
-| Framework        | Spring Boot                    |
-| Security         | Spring Security, JWT           |
-| DB               | PostgreSQL                     |
-| Docs             | Swagger + OpenAPI              |
-| DTO Mapping      | MapStruct                      |
-| Build Tool       | Maven                          |
-| Messaging        | SendGrid Cloud E-mail          |
-| Resilience       | Resilience4j RateLimiter       |
-| Scheduling       | Spring Task Scheduling (@Scheduled) |
+| Layer       | Technology                          |
+|-------------|-------------------------------------|
+| Language    | Java 17+                            |
+| Framework   | Spring Boot                         |
+| Security    | Spring Security, JWT                |
+| DB          | PostgreSQL                          |
+| Docs        | Swagger + OpenAPI                   |
+| DTO Mapping | MapStruct                           |
+| Build Tool  | Maven                               |
+| Messaging   | SendGrid Cloud E-mail               |
+| Resilience  | Resilience4j RateLimiter            |
+| Payments    | Stripe PaymentIntent API            |
+| Media       | AWS S3/MinIO presigned URLs         |
+| Scheduling  | Spring Task Scheduling (@Scheduled) |
 ---
 ## 🚀 Getting Started
 

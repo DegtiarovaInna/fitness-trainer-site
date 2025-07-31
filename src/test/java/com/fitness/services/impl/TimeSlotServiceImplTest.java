@@ -49,7 +49,7 @@ public class TimeSlotServiceImplTest {
 
     @Test
     void create_startEqualsEnd_invalidTime() {
-        var dto = new TimeSlotCreateDTO(LocalDate.now(), LocalTime.of(10,0), LocalTime.of(10,0), 1L);
+        var dto = new TimeSlotCreateDTO(LocalDate.now(), LocalTime.of(10,0), LocalTime.of(10,0), 1L, 5000L);
         var ex = assertThrows(TimeSlotInvalidTimeException.class, () -> service.createTimeSlot(dto));
         assertEquals("The end time must be later than the start time.", ex.getMessage());
         verify(slotRepo, never()).existsOverlapInStudio(any(), any(), any(), any(), isNull());
@@ -57,14 +57,14 @@ public class TimeSlotServiceImplTest {
 
     @Test
     void create_endBeforeStart_invalidTime() {
-        var dto = new TimeSlotCreateDTO(LocalDate.now(), LocalTime.of(14,0), LocalTime.of(13,0), 1L);
+        var dto = new TimeSlotCreateDTO(LocalDate.now(), LocalTime.of(14,0), LocalTime.of(13,0), 1L, 5000L);
         assertThrows(TimeSlotInvalidTimeException.class, () -> service.createTimeSlot(dto));
         verify(slotRepo, never()).existsOverlapInStudio(any(), any(), any(), any(), isNull());
     }
 
     @Test
     void create_whenOverlap_throwsOverlap() {
-        var dto = new TimeSlotCreateDTO(LocalDate.now(), LocalTime.of(9,0), LocalTime.of(10,0), 1L);
+        var dto = new TimeSlotCreateDTO(LocalDate.now(), LocalTime.of(9,0), LocalTime.of(10,0), 1L, 5000L);
         when(slotRepo.existsOverlapInStudio(1L, dto.getDate(), dto.getStartTime(), dto.getEndTime(), null)).thenReturn(true);
         assertThrows(TimeSlotOverlapException.class, () -> service.createTimeSlot(dto));
         verify(studioRepo, never()).findById(any());
@@ -72,7 +72,7 @@ public class TimeSlotServiceImplTest {
 
     @Test
     void create_whenStudioMissing_throwsNotFound() {
-        var dto = new TimeSlotCreateDTO(LocalDate.now(), LocalTime.of(9,0), LocalTime.of(10,0), 2L);
+        var dto = new TimeSlotCreateDTO(LocalDate.now(), LocalTime.of(9,0), LocalTime.of(10,0), 2L, 5000L);
         when(slotRepo.existsOverlapInStudio(any(), any(), any(), any(), isNull())).thenReturn(false);
         when(studioRepo.findById(2L)).thenReturn(Optional.empty());
         assertThrows(StudioNotFoundException.class, () -> service.createTimeSlot(dto));
@@ -80,7 +80,7 @@ public class TimeSlotServiceImplTest {
 
     @Test
     void create_successful() {
-        var dto = new TimeSlotCreateDTO(LocalDate.of(2025,7,10), LocalTime.of(12,0), LocalTime.of(13,30), 3L);
+        var dto = new TimeSlotCreateDTO(LocalDate.of(2025,7,10), LocalTime.of(12,0), LocalTime.of(13,30), 3L, 5000L);
         when(slotRepo.existsOverlapInStudio(any(), any(), any(), any(), isNull())).thenReturn(false);
         var studio = new Studio(); studio.setId(3L);
         when(studioRepo.findById(3L)).thenReturn(Optional.of(studio));
@@ -93,6 +93,7 @@ public class TimeSlotServiceImplTest {
                 .available(true)
                 .trial(Duration.between(dto.getStartTime(), dto.getEndTime()).toMinutes() == 30)
                 .studio(studio)
+                .priceCents(dto.getPriceCents())
                 .build();
         when(slotRepo.save(any(TimeSlot.class))).thenReturn(entity);
 
@@ -145,20 +146,20 @@ public class TimeSlotServiceImplTest {
 
     @Test
     void update_invalidTime_throwsInvalidTime() {
-        var dto = new TimeSlotUpdateDTO(LocalDate.now(), LocalTime.of(5,0), LocalTime.of(5,0));
+        var dto = new TimeSlotUpdateDTO(LocalDate.now(), LocalTime.of(5,0), LocalTime.of(5,0), 5000L);
         assertThrows(TimeSlotInvalidTimeException.class, () -> service.updateTimeSlot(1L, dto));
     }
 
     @Test
     void update_missing_throwsNotFound() {
-        var dto = new TimeSlotUpdateDTO(LocalDate.now(), LocalTime.of(6,0), LocalTime.of(7,0));
+        var dto = new TimeSlotUpdateDTO(LocalDate.now(), LocalTime.of(6,0), LocalTime.of(7,0), 5000L);
         when(slotRepo.findById(7L)).thenReturn(Optional.empty());
         assertThrows(TimeSlotNotFoundException.class, () -> service.updateTimeSlot(7L, dto));
     }
 
     @Test
     void update_overlap_throwsOverlap() {
-        var dto = new TimeSlotUpdateDTO(LocalDate.now(), LocalTime.of(8,0), LocalTime.of(9,0));
+        var dto = new TimeSlotUpdateDTO(LocalDate.now(), LocalTime.of(8,0), LocalTime.of(9,0), 5000L);
         var existing = TimeSlot.builder().id(8L).studio(new Studio()).build();
         when(slotRepo.findById(8L)).thenReturn(Optional.of(existing));
         when(slotRepo.existsOverlapInStudio( existing.getStudio().getId(), dto.getDate(), dto.getStartTime(), dto.getEndTime(), 8L))
@@ -168,7 +169,7 @@ public class TimeSlotServiceImplTest {
 
     @Test
     void update_successful_returnsDto() {
-        var dto = new TimeSlotUpdateDTO(LocalDate.of(2025,8,1), LocalTime.of(10,0), LocalTime.of(11,0));
+        var dto = new TimeSlotUpdateDTO(LocalDate.of(2025,8,1), LocalTime.of(10,0), LocalTime.of(11,0), 5000L);
         var studio = new Studio(); studio.setId(9L);
         var existing = TimeSlot.builder().id(9L).studio(studio).build();
         when(slotRepo.findById(9L)).thenReturn(Optional.of(existing));
@@ -244,6 +245,7 @@ public class TimeSlotServiceImplTest {
         s3.setDate(LocalDate.of(2025,2,5));
         s3.setStartTime(LocalTime.of(10,0));
         s3.setEndTime(LocalTime.of(11,0));
+        s3.setPriceCents(2500L);
 
         when(slotRepo.findByStudioIdAndDateBetweenAndAvailableTrue(
                 7L, LocalDate.of(2025,2,1), LocalDate.of(2025,2,28)))

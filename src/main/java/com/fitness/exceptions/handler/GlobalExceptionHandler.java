@@ -136,7 +136,15 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
         return buildResponse("EMAIL_ALREADY_EXISTS", ErrorMessage.USER_EMAIL_ALREADY_EXISTS, HttpStatus.BAD_REQUEST);
     }
-
+    // 502 – Stripe API
+    @ExceptionHandler(StripeApiException.class)
+    public ResponseEntity<Map<String, String>> handleStripeError(StripeApiException ex) {
+        return buildResponse(
+                "STRIPE_API_ERROR",
+                ex.getMessage(),
+                HttpStatus.BAD_GATEWAY
+        );
+    }
     // 500
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleAllUncaughtException(Exception ex) {
