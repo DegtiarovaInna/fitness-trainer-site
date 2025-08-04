@@ -30,7 +30,7 @@ public class AuthController {
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
 
-
+    @RateLimiter(name = "registerRateLimiter")
     @PostMapping("/register")
     public ResponseEntity<UserDTO> registerUser(@Valid @RequestBody RegisterUserRequest registerUserRequest) {
         UserDTO userDTO = userService.registerUser(registerUserRequest);

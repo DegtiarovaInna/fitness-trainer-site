@@ -1,9 +1,11 @@
 package com.fitness.services.impl;
 
 import com.fitness.dto.PaymentDTO;
+import com.fitness.dto.PaymentFilter;
 import com.fitness.enums.BookingStatus;
 import com.fitness.enums.PaymentStatus;
 import com.fitness.exceptions.BookingNotFoundException;
+import com.fitness.exceptions.PaymentNotFoundException;
 import com.fitness.exceptions.StripeApiException;
 import com.fitness.exceptions.errorMessage.ErrorMessage;
 import com.fitness.mappers.PaymentMapper;
@@ -16,14 +18,21 @@ import com.fitness.services.interfaces.PaymentService;
 import com.fitness.services.interfaces.PromoService;
 import com.stripe.model.Event;
 import com.stripe.model.PaymentIntent;
+import com.stripe.model.Refund;
 import com.stripe.net.Webhook;
 import com.stripe.param.PaymentIntentCreateParams;
+import com.stripe.param.RefundCreateParams;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.exception.StripeException;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import java.time.LocalTime;
 
 @Service
 @RequiredArgsConstructor
@@ -90,7 +99,7 @@ public class PaymentServiceImpl implements PaymentService {
                         processSuccess((PaymentIntent) event.getData().getObject());
                 case "payment_intent.payment_failed" ->
                         processFailure((PaymentIntent) event.getData().getObject());
-                default -> { /* игнорируем */ }
+                default -> { }
             }
 
         } catch (SignatureVerificationException e) {
@@ -121,5 +130,45 @@ public class PaymentServiceImpl implements PaymentService {
 
         emailService.sendBookingCancellationEmail(b.getUser(), b);
     }
+    @Override
+    public Page<PaymentDTO> search(PaymentFilter f, Pageable pageable) {
+        Page<Payment> page = paymentRepo.search(
+                f.getBookingId(),
+                f.getUserId(),
+                f.getStatus(),
+                f.getFrom() == null ? null : f.getFrom().atStartOfDay(),
+                f.getTo()   == null ? null : f.getTo().atTime(LocalTime.MAX),
+                pageable
+        );
+        return page.map(paymentMapper::paymentToPaymentDTO);
+    }
 
+    @Override
+    public PaymentDTO getPayment(Long id) {
+        return paymentMapper.paymentToPaymentDTO(
+                paymentRepo.findById(id)
+                        .orElseThrow(() -> new PaymentNotFoundException(ErrorMessage.PAYMENT_NOT_FOUND))
+        );
+    }
+
+    @Override
+    public void refund(Long id, long amountCents) {
+        Payment pay = paymentRepo.findById(id)
+                .orElseThrow(() -> new PaymentNotFoundException(ErrorMessage.PAYMENT_NOT_FOUND));
+        if (amountCents < 1 || amountCents > pay.getAmount()) {
+            throw new IllegalArgumentException("Refund amount must be 1.."+pay.getAmount()+" cents");
+        }
+        try {
+            RefundCreateParams params = RefundCreateParams.builder()
+                    .setPaymentIntent(pay.getPaymentIntentId())
+                    .setAmount(amountCents)
+                    .build();
+            Refund.create(params);
+
+            pay.setStatus(PaymentStatus.REFUNDED);
+            paymentRepo.save(pay);
+        } catch (StripeException e) {
+            throw new StripeApiException(ErrorMessage.STRIPE_API_ERROR, e);
+        }
+    }
 }

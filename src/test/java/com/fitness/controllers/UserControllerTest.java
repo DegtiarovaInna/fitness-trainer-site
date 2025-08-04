@@ -215,9 +215,8 @@ public class UserControllerTest {
         mvc.perform(put("/api/users/2/password")
                         .contentType(APPLICATION_JSON)
                         .content(mapper.writeValueAsString(req)))
-                .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.error").value("INTERNAL_SERVER_ERROR"))
-                .andExpect(jsonPath("$.message")
-                        .value("An unexpected error occurred. Please try again later."));
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("BAD_REQUEST"))
+                .andExpect(jsonPath("$.message").value("New passwords do not match"));
     }
 }

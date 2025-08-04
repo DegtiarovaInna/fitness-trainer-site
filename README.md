@@ -11,7 +11,9 @@ Full-featured backend for a personal fitness trainer's studio booking system.
 - ✅ Manage Studios: CRUD + Analytics
 - ✅ Time Slot Management: conflict detection, buffer between studios
 - ✅ Booking System: create/cancel/update, upcoming/history view
-- ✅ Card Payments via Stripe + promo‑codes
+- ✅ Stripe payments: promo-codes, success/failed webhooks
+- ✅ Admin payment search & CSV-ready pagination
+- ✅ One-click refunds for admins
 - ✅ Media upload/download via S3 presigned URLs
 - ✅ One trial session per user per year
 - ✅ Swagger UI for API documentation

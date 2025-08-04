@@ -86,7 +86,8 @@ public class GlobalExceptionHandler {
             UserNotFoundException.class,
             StudioNotFoundException.class,
             BookingNotFoundException.class,
-            TimeSlotNotFoundException.class
+            TimeSlotNotFoundException.class,
+            PaymentNotFoundException.class
     })
     public ResponseEntity<Map<String, String>> handleNotFound(RuntimeException ex) {
         return buildResponse("NOT_FOUND", ex.getMessage(), HttpStatus.NOT_FOUND);
@@ -135,6 +136,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<Map<String, String>> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
         return buildResponse("EMAIL_ALREADY_EXISTS", ErrorMessage.USER_EMAIL_ALREADY_EXISTS, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, String>> badRequest(IllegalArgumentException ex) {
+        return buildResponse("BAD_REQUEST", ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
     // 502 – Stripe API
     @ExceptionHandler(StripeApiException.class)

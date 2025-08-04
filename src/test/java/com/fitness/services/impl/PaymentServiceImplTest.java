@@ -1,6 +1,7 @@
 package com.fitness.services.impl;
 
 import com.fitness.dto.PaymentDTO;
+import com.fitness.dto.PaymentFilter;
 import com.fitness.enums.BookingStatus;
 import com.fitness.enums.PaymentStatus;
 import com.fitness.exceptions.BookingNotFoundException;
@@ -17,14 +18,19 @@ import com.stripe.exception.SignatureVerificationException;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Event;
 import com.stripe.model.PaymentIntent;
+import com.stripe.model.Refund;
 import com.stripe.net.Webhook;
 import com.stripe.param.PaymentIntentCreateParams;
 import com.stripe.model.Event.Data;
+import com.stripe.param.RefundCreateParams;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -84,7 +90,7 @@ public class PaymentServiceImplTest {
     }
 
     @Test
-    void createPaymentIntent_successful() throws Exception {
+    void createPaymentIntent_successful() {
         Booking b = new Booking();
         b.setId(3L);
         b.setTimeSlot(new TimeSlot());
@@ -177,5 +183,63 @@ public class PaymentServiceImplTest {
             assertEquals(BookingStatus.PAYMENT_FAILED, booking.getStatus());
             verify(emailService).sendBookingCancellationEmail(any(), eq(booking));
         }
+    }
+    @Test
+    void search_mapsEntitiesToDTO() {
+        Payment p = Payment.builder()
+                .id(11L)
+                .status(PaymentStatus.SUCCEEDED)
+                .build();
+        var page = new PageImpl<>(List.of(p), PageRequest.of(0, 10), 1);
+        when(paymentRepo.search(any(), any(), any(), any(), any(), any()))
+                .thenReturn(page);
+
+        PaymentDTO dto = new PaymentDTO();
+        dto.setId(11L);
+        when(paymentMapper.paymentToPaymentDTO(p)).thenReturn(dto);
+
+        var result = service.search(new PaymentFilter(), PageRequest.of(0, 10));
+
+        assertEquals(1, result.getTotalElements());
+        assertEquals(11L, result.getContent().get(0).getId());
+    }
+
+    @Test
+    void refund_successful(){
+        Payment pay = Payment.builder()
+                .id(9L)
+                .paymentIntentId("pi_ok")
+                .amount(4000L)
+                .status(PaymentStatus.SUCCEEDED)
+                .build();
+        when(paymentRepo.findById(9L)).thenReturn(Optional.of(pay));
+        when(paymentRepo.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        try (MockedStatic<Refund> rs = mockStatic(Refund.class)) {
+            rs.when(() -> Refund.create(any(RefundCreateParams.class)))
+                    .thenReturn(mock(Refund.class));
+
+            service.refund(9L, 3000);
+
+            assertEquals(PaymentStatus.REFUNDED, pay.getStatus(),
+                    "status must be changed");
+            rs.verify(() -> Refund.create(argThat((RefundCreateParams p1) ->
+                    p1.getAmount().equals(3000L) &&
+                            p1.getPaymentIntent().equals("pi_ok"))));
+        }
+    }
+
+    @Test
+    void refund_amountTooHigh() {
+        Payment pay = Payment.builder()
+                .id(8L)
+                .paymentIntentId("pi_fail")
+                .amount(4000L)
+                .status(PaymentStatus.SUCCEEDED)
+                .build();
+        when(paymentRepo.findById(8L)).thenReturn(Optional.of(pay));
+
+        assertThrows(IllegalArgumentException.class,
+                () -> service.refund(8L, 10_000));
     }
 }
