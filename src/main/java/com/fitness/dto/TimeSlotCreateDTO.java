@@ -29,4 +29,7 @@ public class TimeSlotCreateDTO {
     @NotNull(message = "Studio ID is required")
     @Schema(description = "Studio ID", example = "1")
     private Long studioId;
+
+    @Schema(description = "Price of training in cents", example = "5000")
+    @NotNull private Long priceCents;
 }

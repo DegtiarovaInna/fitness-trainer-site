@@ -35,6 +35,8 @@ public class TimeSlot {
     private List<Booking> bookings;
     private boolean trial;
 
+    private long priceCents;
+
     public Studio getStudio() {
         return studio;
     }

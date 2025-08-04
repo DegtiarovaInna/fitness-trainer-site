@@ -86,7 +86,8 @@ public class GlobalExceptionHandler {
             UserNotFoundException.class,
             StudioNotFoundException.class,
             BookingNotFoundException.class,
-            TimeSlotNotFoundException.class
+            TimeSlotNotFoundException.class,
+            PaymentNotFoundException.class
     })
     public ResponseEntity<Map<String, String>> handleNotFound(RuntimeException ex) {
         return buildResponse("NOT_FOUND", ex.getMessage(), HttpStatus.NOT_FOUND);
@@ -137,6 +138,19 @@ public class GlobalExceptionHandler {
         return buildResponse("EMAIL_ALREADY_EXISTS", ErrorMessage.USER_EMAIL_ALREADY_EXISTS, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, String>> badRequest(IllegalArgumentException ex) {
+        return buildResponse("BAD_REQUEST", ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+    // 502 – Stripe API
+    @ExceptionHandler(StripeApiException.class)
+    public ResponseEntity<Map<String, String>> handleStripeError(StripeApiException ex) {
+        return buildResponse(
+                "STRIPE_API_ERROR",
+                ex.getMessage(),
+                HttpStatus.BAD_GATEWAY
+        );
+    }
     // 500
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleAllUncaughtException(Exception ex) {

@@ -27,4 +27,6 @@ public class ErrorMessage {
     public static final String EMAIL_NOT_CONFIRMED = "Email not confirmed";
     public static final String USER_HAS_ACTIVE_BOOKINGS = "USER_HAS_ACTIVE_BOOKINGS";
     public static final String REFRESH_TOKEN_REUSED = "Refresh token reused – sessions cleared";
+    public static final String STRIPE_API_ERROR = "Error processing payment via Stripe";
+    public static final String PAYMENT_NOT_FOUND = "Payment not found";
 }

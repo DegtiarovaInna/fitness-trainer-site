@@ -70,6 +70,7 @@ public class TimeSlotServiceImpl implements TimeSlotService {
                 .available(true)
                 .trial(Duration.between(dto.getStartTime(), dto.getEndTime()).toMinutes() == 30)
                 .studio(studio)
+                .priceCents(dto.getPriceCents())
                 .build();
 
 
@@ -125,7 +126,7 @@ public class TimeSlotServiceImpl implements TimeSlotService {
         slot.setTrial(
                 Duration.between(dto.getStartTime(), dto.getEndTime()).toMinutes() == 30
         );
-
+        slot.setPriceCents(dto.getPriceCents());
         TimeSlot updated = timeSlotRepository.save(slot);
         return timeSlotMapper.timeSlotToTimeSlotDTO(updated);
     }

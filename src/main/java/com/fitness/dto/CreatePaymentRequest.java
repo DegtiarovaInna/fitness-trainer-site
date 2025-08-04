@@ -4,9 +4,8 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
-public class CreateOwnBookingRequest {
+public class CreatePaymentRequest {
     @NotNull
-    private Long timeSlotId;
-
+    Long bookingId;
     private String promoCode;
 }
