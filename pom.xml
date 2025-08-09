@@ -148,6 +148,18 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
         <version>3.2.5</version>
+        <executions>
+          <execution>
+            <id>start</id>
+            <phase>pre-integration-test</phase>
+            <goals><goal>start</goal></goals>
+          </execution>
+          <execution>
+            <id>stop</id>
+            <phase>post-integration-test</phase>
+            <goals><goal>stop</goal></goals>
+          </execution>
+        </executions>
       </plugin>
       <!-- Maven Compiler Plugin для обработки аннотаций (MapStruct + Lombok) -->
       <plugin>
@@ -176,6 +188,23 @@
 
           </annotationProcessorPaths>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.springdoc</groupId>
+        <artifactId>springdoc-openapi-maven-plugin</artifactId>
+        <version>1.5</version>
+        <executions>
+          <execution>
+            <id>generate-openapi</id>
+            <phase>integration-test</phase>
+            <goals><goal>generate</goal></goals>
+            <configuration>
+              <apiDocsUrl>http://localhost:8080/v1/api-docs</apiDocsUrl>
+              <outputDir>${project.basedir}/docs</outputDir>
+              <outputFileName>openapi.json</outputFileName>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>

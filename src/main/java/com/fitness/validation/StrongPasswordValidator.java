@@ -5,6 +5,7 @@ import com.nulabinc.zxcvbn.Strength;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
+
 public class StrongPasswordValidator implements ConstraintValidator<StrongPassword, String> {
     private static final Zxcvbn ZX = new Zxcvbn();
 

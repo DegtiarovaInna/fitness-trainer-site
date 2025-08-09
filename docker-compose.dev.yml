@@ -1,5 +1,5 @@
 services:
  app:
-    build: .                    # собираем из Dockerfile
+    build: .
     environment:
-      SPRING_PROFILES_ACTIVE: dev   # включает DataInitializer
+      SPRING_PROFILES_ACTIVE: dev

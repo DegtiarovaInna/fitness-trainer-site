@@ -12,6 +12,9 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.core.convert.ConversionFailedException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import java.time.format.DateTimeParseException;
 
 import org.springframework.security.access.AccessDeniedException;
 
@@ -121,15 +124,14 @@ public class GlobalExceptionHandler {
         return buildResponse("BUSINESS_ERROR", ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
-    // 400
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
+    public ResponseEntity<ErrorResponse> handleValidationExceptions(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
         ex.getBindingResult().getAllErrors().forEach(error -> {
             String field = (error instanceof FieldError) ? ((FieldError) error).getField() : error.getObjectName();
             errors.put(field, error.getDefaultMessage());
         });
-        return ResponseEntity.badRequest().body(errors);
+        return ResponseEntity.badRequest().body(ErrorResponse.ofValidation(errors));
     }
 
     // 400
@@ -142,6 +144,19 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> badRequest(IllegalArgumentException ex) {
         return buildResponse("BAD_REQUEST", ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
+    @ExceptionHandler({
+            MethodArgumentTypeMismatchException.class,
+            ConversionFailedException.class,
+            DateTimeParseException.class
+    })
+    public ResponseEntity<Map<String, String>> handleBadParam(Exception ex) {
+        return buildResponse(
+                "BAD_REQUEST",
+                "Invalid request parameter or date value. Use ISO format yyyy-MM-dd and valid calendar dates.",
+                HttpStatus.BAD_REQUEST
+        );
+    }
+
     // 502 – Stripe API
     @ExceptionHandler(StripeApiException.class)
     public ResponseEntity<Map<String, String>> handleStripeError(StripeApiException ex) {
